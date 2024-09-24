@@ -64,7 +64,7 @@ def extract_psummary_data(root):
             'FirstReportedLimitAmt': first_reported_limit_amt,
             'CurrentLimit': current_limit,
             'AccountStatus': account_status,
-            'CreditCardType': credit_card_type  # Add credit card type here
+            'CreditCardType': credit_card_type  
         })
     
     return pd.DataFrame(psummary_data)
@@ -72,7 +72,7 @@ def extract_psummary_data(root):
 def analyze_page():
     st.title("Analysis Page")
     
-    # Analysis Page Content
+    
     if 'data' not in st.session_state or st.session_state.data.empty:
         st.error("No data available to plot. Please check the XML file.")
         return
@@ -107,7 +107,7 @@ def analyze_page():
         pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses (Open vs Closed)")
         st.plotly_chart(pie_fig)
 
-        # Pie Chart for Credit Card Types
+
         st.subheader("Pie Chart of Credit Card Types")
         credit_card_data = data['CreditCardType'].value_counts().reset_index()
         credit_card_data.columns = ['CreditCardType', 'Count']
@@ -119,7 +119,7 @@ def analyze_page():
         credit_card_pie_fig = px.pie(credit_card_data, names='CreditCardType', values='Count', title="Distribution of Credit Card Types")
         st.plotly_chart(credit_card_pie_fig)
 
-    # Back Button at the Bottom
+   
     if st.button("Back to Search", key="back_to_home_analysis"):
         st.session_state.page = "search"
 
@@ -152,10 +152,10 @@ def main():
     elif st.session_state.page == "account_details":
         st.write(f"Results for Account Number: {st.session_state.account_number}")
 
-        # Extract raw and aggregated data for the selected account number
+
         raw_data, aggregated_data = extract_data_for_account(root)
 
-        # Display Raw Data
+    
         st.write("Raw Data:")
         raw_df = pd.DataFrame(raw_data)
         if not raw_df.empty:
@@ -163,7 +163,6 @@ def main():
         else:
             st.write("No Raw Data Found.")
 
-        # Display Aggregated Data
         st.write("Aggregated Data:")
         agg_df = pd.DataFrame(aggregated_data)
         if not agg_df.empty:
@@ -187,7 +186,7 @@ def main():
             if st.button("Analyze"):
                 st.session_state.page = "analyze"
 
-        # Back Button below the three buttons
+        
         if st.button("Back to Search", key="back_to_home_details"):
             st.session_state.page = "search"
 
