@@ -57,12 +57,14 @@ def extract_psummary_data(root):
         first_reported_limit_amt = int(psummary.find("FirstReportedLimitAmt").text) if psummary.find("FirstReportedLimitAmt") is not None else 0
         current_limit = int(psummary.find("CurrentLimit").text) if psummary.find("CurrentLimit") is not None else 0
         account_status = psummary.find("AccountStatus").text if psummary.find("AccountStatus") is not None else "N/A"
+        credit_card_type = psummary.find("CreditCardType").text if psummary.find("CreditCardType") is not None else "N/A"
         
         psummary_data.append({
             'CreditorName': creditor_name,
             'FirstReportedLimitAmt': first_reported_limit_amt,
             'CurrentLimit': current_limit,
-            'AccountStatus': account_status
+            'AccountStatus': account_status,
+            'CreditCardType': credit_card_type  # Add credit card type here
         })
     
     return pd.DataFrame(psummary_data)
@@ -105,6 +107,18 @@ def analyze_page():
         pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses (Open vs Closed)")
         st.plotly_chart(pie_fig)
 
+        # Pie Chart for Credit Card Types
+        st.subheader("Pie Chart of Credit Card Types")
+        credit_card_data = data['CreditCardType'].value_counts().reset_index()
+        credit_card_data.columns = ['CreditCardType', 'Count']
+        
+        if credit_card_data.empty:
+            st.error("No data available for Credit Card Types.")
+            return
+
+        credit_card_pie_fig = px.pie(credit_card_data, names='CreditCardType', values='Count', title="Distribution of Credit Card Types")
+        st.plotly_chart(credit_card_pie_fig)
+
     # Back Button at the Bottom
     if st.button("Back to Search", key="back_to_home_analysis"):
         st.session_state.page = "search"
@@ -138,8 +152,10 @@ def main():
     elif st.session_state.page == "account_details":
         st.write(f"Results for Account Number: {st.session_state.account_number}")
 
+        # Extract raw and aggregated data for the selected account number
         raw_data, aggregated_data = extract_data_for_account(root)
 
+        # Display Raw Data
         st.write("Raw Data:")
         raw_df = pd.DataFrame(raw_data)
         if not raw_df.empty:
@@ -147,6 +163,7 @@ def main():
         else:
             st.write("No Raw Data Found.")
 
+        # Display Aggregated Data
         st.write("Aggregated Data:")
         agg_df = pd.DataFrame(aggregated_data)
         if not agg_df.empty:
