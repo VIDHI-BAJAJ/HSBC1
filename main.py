@@ -4,12 +4,10 @@ import pandas as pd
 import plotly.express as px
 import io
 
-
 def load_xml(file):
     tree = ET.parse(file)
     root = tree.getroot()
     return root
-
 
 def search_account_by_number(element, account_number, parent=None):
     results = []
@@ -31,22 +29,24 @@ def extract_data_for_account(element):
     raw_data = []
     aggregated_data = []
 
+    # Adjust this loop to find data under the desired tags
     for child in element.iter():
-        if child.tag == "RawData":
-            for raw_item in child:
-                name = raw_item.find("Name").text if raw_item.find("Name") is not None else ""
-                value = raw_item.find("Value").text if raw_item.find("Value") is not None else ""
-                raw_data.append({"Name": name, "Value": value})
+        if child.tag == "InterfaceAggregations":
+            for agg_child in child.findall("InterfaceAggregationLocal/AggregationLocal"):
+                # Extracting raw data if available
+                for raw_item in agg_child.findall("RawData/Item"):
+                    name = raw_item.find("Name").text if raw_item.find("Name") is not None else ""
+                    value = raw_item.find("Value").text if raw_item.find("Value") is not None else ""
+                    raw_data.append({"Name": name, "Value": value})
 
-        if child.tag == "AggregatedData":
-            for aggregated_item in child:
-                name = aggregated_item.find("Name").text if aggregated_item.find("Name") is not None else ""
-                value = aggregated_item.find("Value").text if aggregated_item.find("Value") is not None else ""
-                description = aggregated_item.find("Description").text if aggregated_item.find("Description") is not None else ""
-                aggregated_data.append({"Name": name, "Value": value, "Description": description})
-    
+                # Extracting aggregated data if available
+                for agg_item in agg_child.findall("AggregatedData/Item"):
+                    name = agg_item.find("Name").text if agg_item.find("Name") is not None else ""
+                    value = agg_item.find("Value").text if agg_item.find("Value") is not None else ""
+                    description = agg_item.find("Description").text if agg_item.find("Description") is not None else ""
+                    aggregated_data.append({"Name": name, "Value": value, "Description": description})
+
     return raw_data, aggregated_data
-
 
 def analyze_page():
     st.title("Analysis Page")
@@ -80,7 +80,6 @@ def analyze_page():
     if st.button("Back"):
         st.session_state.page = "account_details"
 
-
 def download_xml_button(xml_content, filename):
     xml_bytes = io.BytesIO()
     xml_bytes.write(xml_content.encode('utf-8'))
@@ -92,7 +91,6 @@ def download_xml_button(xml_content, filename):
         mime="application/xml"
     )
 
-
 def main():
     st.title("User Details")
 
@@ -102,7 +100,6 @@ def main():
     default_file = './1_Account_035_Result.xml'  
     root = load_xml(default_file)
 
-
     if st.session_state.page == "analyze":
         analyze_page()
 
@@ -111,21 +108,23 @@ def main():
 
         raw_data, aggregated_data = extract_data_for_account(root)
 
-        if raw_data:
-            st.write("Raw Data:")
-            raw_df = pd.DataFrame(raw_data)
+        # Display raw data table
+        st.write("Raw Data:")
+        raw_df = pd.DataFrame(raw_data)
+        if not raw_df.empty:
             st.dataframe(raw_df)
         else:
             st.write("No Raw Data Found.")
 
-        if aggregated_data:
-            st.write("Aggregated Data:")
-            agg_df = pd.DataFrame(aggregated_data)
+        # Display aggregated data table
+        st.write("Aggregated Data:")
+        agg_df = pd.DataFrame(aggregated_data)
+        if not agg_df.empty:
             st.dataframe(agg_df)
         else:
             st.write("No Aggregated Data Found.")
 
-        col1, col2, col3,  = st.columns(3)
+        col1, col2, col3 = st.columns(3)
 
         with col1:
             if st.button("Request"):
@@ -152,7 +151,6 @@ def main():
                 st.session_state.page = "account_details"
             else:
                 st.write(f"No results found for Account Number: {account_number}")
-
 
 if __name__ == "__main__":
     main()
