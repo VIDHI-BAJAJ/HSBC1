@@ -83,7 +83,7 @@ def extract_psummary_data(root):
     
     return pd.DataFrame(psummary_data)
 
-# Analysis Page for visualizations with a back button
+# Analysis Page for visualizations
 def analyze_page():
     st.title("Analysis Page")
     
@@ -115,10 +115,6 @@ def analyze_page():
         pie_data.columns = ['AccountStatus', 'Count']
         pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses")
         st.plotly_chart(pie_fig)
-
-    # Add back button to navigate back to the search page
-    if st.button("Back to Search", key="back_to_search_analysis"):
-        st.session_state.page = "search"
 
 # File download function
 def download_xml_button(xml_content, filename):
