@@ -1,63 +1,77 @@
 import streamlit as st
-import xml.etree.ElementTree as ET
 import pandas as pd
 import plotly.express as px
+from lxml import etree
 import io
 
+# Load XML using lxml
 def load_xml(file):
     try:
-        tree = ET.parse(file)
+        tree = etree.parse(file)
         root = tree.getroot()
         return root
     except Exception as e:
         st.error(f"Error loading XML file: {e}")
         return None
 
-def search_account_by_number(element, account_number, parent=None):
+# Search account by number using XPath
+def search_account_by_number(element, account_number):
     results = []
-
-    if element.tag == "AccountNumber" and account_number in element.text:
+    account_elements = element.xpath(f"//*[contains(text(), '{account_number}')]")
+    
+    for account in account_elements:
+        parent = account.getparent()
         results.append({
-            "Tag": parent.tag if parent is not None else element.tag,
+            "Tag": parent.tag if parent is not None else account.tag,
             "Attributes": parent.attrib if parent is not None else {},
-            "AccountNumber": element.text,
-            "Details": ET.tostring(parent, encoding='utf8').decode('utf8') if parent is not None else ""
+            "AccountNumber": account.text,
+            "Details": etree.tostring(parent, pretty_print=True, encoding='utf8').decode('utf8') if parent is not None else ""
         })
-
-    for child in element:
-        results += search_account_by_number(child, account_number, element)
-
+    
     return results
 
-def extract_data_for_account(element):
+# Extract data for the account using XPath
+def extract_data_for_account_lxml(element):
     raw_data = []
     aggregated_data = []
 
-    for child in element.iter():
-        if child.tag == "InterfaceAggregations":
-            for agg_child in child.findall("InterfaceAggregationLocal/AggregationLocal"):
-                for raw_item in agg_child.findall("Raw"):
-                    name = raw_item.find("Name").text if raw_item.find("Name") is not None else ""
-                    value = raw_item.find("Value").text if raw_item.find("Value") is not None else ""
-                    raw_data.append({"Name": name, "Value": value})
+    interface_aggregations = element.xpath(".//InterfaceAggregations")
 
-                for agg_item in agg_child.findall("Aggregated"):
-                    name = agg_item.find("Name").text if agg_item.find("Name") is not None else ""
-                    value = agg_item.find("Value").text if agg_item.find("Value") is not None else ""
-                    description = agg_item.find("Description").text if agg_item.find("Description") is not None else ""
-                    aggregated_data.append({"Name": name, "Value": value, "Description": description})
+    for interface in interface_aggregations:
+        aggregation_locals = interface.xpath(".//AggregationLocal")
+        for agg_local in aggregation_locals:
+            
+            # Extract Raw data
+            raw_items = agg_local.xpath("./Raw")
+            for raw_item in raw_items:
+                name = raw_item.get("Name")
+                value = raw_item.get("Value")
+                raw_data.append({"Name": name, "Value": value})
+
+            # Extract Aggregated data
+            aggregated_items = agg_local.xpath("./Aggregated")
+            for agg_item in aggregated_items:
+                name = agg_item.get("Name")
+                value = agg_item.get("Value")
+                description = agg_item.get("Description")
+                aggregated_data.append({
+                    "Name": name,
+                    "Value": value,
+                    "Description": description
+                })
 
     return raw_data, aggregated_data
 
+# Extract PSUMMARY data using lxml
 def extract_psummary_data(root):
     psummary_data = []
     
-    for psummary in root.findall(".//PSUMMARY"):
-        creditor_name = psummary.find("CreditorName").text if psummary.find("CreditorName") is not None else "N/A"
-        first_reported_limit_amt = int(psummary.find("FirstReportedLimitAmt").text) if psummary.find("FirstReportedLimitAmt") is not None else 0
-        current_limit = int(psummary.find("CurrentLimit").text) if psummary.find("CurrentLimit") is not None else 0
-        account_status = psummary.find("AccountStatus").text if psummary.find("AccountStatus") is not None else "N/A"
-        credit_card_type = psummary.find("CreditCardType").text if psummary.find("CreditCardType") is not None else "N/A"
+    for psummary in root.xpath(".//PSUMMARY"):
+        creditor_name = psummary.findtext("CreditorName", default="N/A")
+        first_reported_limit_amt = int(psummary.findtext("FirstReportedLimitAmt", default=0))
+        current_limit = int(psummary.findtext("CurrentLimit", default=0))
+        account_status = psummary.findtext("AccountStatus", default="N/A")
+        credit_card_type = psummary.findtext("CreditCardType", default="N/A")
         
         psummary_data.append({
             'CreditorName': creditor_name,
@@ -69,21 +83,16 @@ def extract_psummary_data(root):
     
     return pd.DataFrame(psummary_data)
 
+# Analysis Page for visualizations with a back button
 def analyze_page():
     st.title("Analysis Page")
-    
     
     if 'data' not in st.session_state or st.session_state.data.empty:
         st.error("No data available to plot. Please check the XML file.")
         return
 
     data = st.session_state.data
-    
-    if 'graph_type' not in st.session_state:
-        st.session_state.graph_type = 'Line Graph' 
-
-    graph_type = st.selectbox("Select a graph type to display:", ["Line Graph", "Bar Graph", "Pie Chart"], index=["Line Graph", "Bar Graph", "Pie Chart"].index(st.session_state.graph_type))
-    st.session_state.graph_type = graph_type  
+    graph_type = st.selectbox("Select a graph type to display:", ["Line Graph", "Bar Graph", "Pie Chart"])
 
     if graph_type == "Line Graph":
         st.subheader("Line Graph of FirstReportedLimitAmt by Creditor Name")
@@ -104,25 +113,14 @@ def analyze_page():
 
         pie_data = filtered_data['AccountStatus'].value_counts().reset_index()
         pie_data.columns = ['AccountStatus', 'Count']
-        pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses (Open vs Closed)")
+        pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses")
         st.plotly_chart(pie_fig)
 
-
-        st.subheader("Pie Chart of Credit Card Types")
-        credit_card_data = data['CreditCardType'].value_counts().reset_index()
-        credit_card_data.columns = ['CreditCardType', 'Count']
-        
-        if credit_card_data.empty:
-            st.error("No data available for Credit Card Types.")
-            return
-
-        credit_card_pie_fig = px.pie(credit_card_data, names='CreditCardType', values='Count', title="Distribution of Credit Card Types")
-        st.plotly_chart(credit_card_pie_fig)
-
-   
-    if st.button("Back to Search", key="back_to_home_analysis"):
+    # Add back button to navigate back to the search page
+    if st.button("Back to Search", key="back_to_search_analysis"):
         st.session_state.page = "search"
 
+# File download function
 def download_xml_button(xml_content, filename):
     xml_bytes = io.BytesIO()
     xml_bytes.write(xml_content.encode('utf-8'))
@@ -134,6 +132,7 @@ def download_xml_button(xml_content, filename):
         mime="application/xml"
     )
 
+# Main application logic
 def main():
     st.title("User Details")
 
@@ -152,10 +151,8 @@ def main():
     elif st.session_state.page == "account_details":
         st.write(f"Results for Account Number: {st.session_state.account_number}")
 
+        raw_data, aggregated_data = extract_data_for_account_lxml(root)
 
-        raw_data, aggregated_data = extract_data_for_account(root)
-
-    
         st.write("Raw Data:")
         raw_df = pd.DataFrame(raw_data)
         if not raw_df.empty:
@@ -174,19 +171,18 @@ def main():
 
         with col1:
             if st.button("Request"):
-                request_data = "<Request><AccountNumber>{}</AccountNumber></Request>".format(st.session_state.account_number)
+                request_data = f"<Request><AccountNumber>{st.session_state.account_number}</AccountNumber></Request>"
                 download_xml_button(request_data, "request.xml")
 
         with col2:
             if st.button("Response"):
-                response_data = ET.tostring(root, encoding='utf8').decode('utf8')
+                response_data = etree.tostring(root, pretty_print=True, encoding='utf8').decode('utf8')
                 download_xml_button(response_data, "response.xml")
 
         with col3:
             if st.button("Analyze"):
                 st.session_state.page = "analyze"
 
-        
         if st.button("Back to Search", key="back_to_home_details"):
             st.session_state.page = "search"
 
