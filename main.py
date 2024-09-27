@@ -22,15 +22,14 @@ def search_account_by_number(element, account_number):
     for account in account_elements:
         parent = account.getparent()
         results.append({
-            "Tag": parent.tag if parent is not None else account.tag,
-            "Attributes": parent.attrib if parent is not None else {},
             "AccountNumber": account.text,
             "Details": etree.tostring(parent, pretty_print=True, encoding='utf8').decode('utf8') if parent is not None else ""
+    
         })
     
     return results
 
-# Extract data for the account using XPath
+
 def extract_data_for_account_lxml(element):
     raw_data = []
     aggregated_data = []
@@ -135,8 +134,8 @@ def main():
     if 'page' not in st.session_state:
         st.session_state.page = "search"
 
-    default_file = './1_Account_035_Result.xml'
-    root = load_xml(default_file)
+    file = './1_Account_035_Result.xml'
+    root = load_xml(file)
 
     if root is not None and 'data' not in st.session_state:
         st.session_state.data = extract_psummary_data(root)
