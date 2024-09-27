@@ -4,7 +4,7 @@ import plotly.express as px
 from lxml import etree
 import io
 
-# Load XML using lxml
+
 def load_xml(file):
     try:
         tree = etree.parse(file)
@@ -14,7 +14,7 @@ def load_xml(file):
         st.error(f"Error loading XML file: {e}")
         return None
 
-# Search account by number using XPath
+
 def search_account_by_number(element, account_number):
     results = []
     account_elements = element.xpath(f"//*[contains(text(), '{account_number}')]")
@@ -41,14 +41,14 @@ def extract_data_for_account_lxml(element):
         aggregation_locals = interface.xpath(".//AggregationLocal")
         for agg_local in aggregation_locals:
             
-            # Extract Raw data
+      
             raw_items = agg_local.xpath("./Raw")
             for raw_item in raw_items:
                 name = raw_item.get("Name")
                 value = raw_item.get("Value")
                 raw_data.append({"Name": name, "Value": value})
 
-            # Extract Aggregated data
+         
             aggregated_items = agg_local.xpath("./Aggregated")
             for agg_item in aggregated_items:
                 name = agg_item.get("Name")
@@ -62,7 +62,7 @@ def extract_data_for_account_lxml(element):
 
     return raw_data, aggregated_data
 
-# Extract PSUMMARY data using lxml
+
 def extract_psummary_data(root):
     psummary_data = []
     
@@ -83,7 +83,7 @@ def extract_psummary_data(root):
     
     return pd.DataFrame(psummary_data)
 
-# Analysis Page for visualizations
+
 def analyze_page():
     st.title("Analysis Page")
     
@@ -116,7 +116,7 @@ def analyze_page():
         pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses")
         st.plotly_chart(pie_fig)
 
-# File download function
+
 def download_xml_button(xml_content, filename):
     xml_bytes = io.BytesIO()
     xml_bytes.write(xml_content.encode('utf-8'))
@@ -128,7 +128,7 @@ def download_xml_button(xml_content, filename):
         mime="application/xml"
     )
 
-# Main application logic
+
 def main():
     st.title("User Details")
 
