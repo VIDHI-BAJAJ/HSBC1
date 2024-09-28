@@ -20,11 +20,8 @@ def search_account_by_number(element, account_number):
     account_elements = element.xpath(f"//*[contains(text(), '{account_number}')]")
     
     for account in account_elements:
-        parent = account.getparent()
         results.append({
             "AccountNumber": account.text,
-            "Details": etree.tostring(parent, pretty_print=True, encoding='utf8').decode('utf8') if parent is not None else ""
-    
         })
     
     return results
