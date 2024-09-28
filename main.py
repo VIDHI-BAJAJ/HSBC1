@@ -26,6 +26,14 @@ def search_account_by_number(element, account_number):
     
     return results
 
+#     if account_number:
+#         api_url = f"https://api.example.com/account/details/{account_number}"  
+#         response = requests.get(api_url)
+        
+#         if response.status_code == 200:
+#             st.write(response.json()) 
+#         else:
+#             st.error("Failed to fetch details.")
 
 def extract_data_for_account_lxml(element):
     raw_data = []
@@ -44,7 +52,6 @@ def extract_data_for_account_lxml(element):
                 value = raw_item.get("Value")
                 raw_data.append({"Name": name, "Value": value})
 
-         
             aggregated_items = agg_local.xpath("./Aggregated")
             for agg_item in aggregated_items:
                 name = agg_item.get("Name")
@@ -113,16 +120,16 @@ def analyze_page():
         st.plotly_chart(pie_fig)
 
 
-def download_xml_button(xml_content, filename):
-    xml_bytes = io.BytesIO()
-    xml_bytes.write(xml_content.encode('utf-8'))
-    xml_bytes.seek(0)
-    st.download_button(
-        label=f"Download {filename}",
-        data=xml_bytes,
-        file_name=filename,
-        mime="application/xml"
-    )
+# def download_xml_button(xml_content, filename):
+#     xml_bytes = io.BytesIO()
+#     xml_bytes.write(xml_content.encode('utf-8'))
+#     xml_bytes.seek(0)
+#     st.download_button(
+#         label=f"Download {filename}",
+#         data=xml_bytes,
+#         file_name=filename,
+#         mime="application/xml"
+#     )
 
 
 def main():
@@ -193,3 +200,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
