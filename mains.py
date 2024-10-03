@@ -220,11 +220,11 @@ def display_output():
         # Create three copies of form_data with different Credit Bureaus
         credit_bureaus = [
             '<a href="./Equifax.py" target="_blank">Equifax</a>',
-            '<a href=".\pages\Experian.py" target="_blank">Experian</a>',
+            '<a href="/pages/Experian.py" target="_blank">Experian</a>',
             '<a href="./Illion.py" target="_blank">Illion</a>'
         ]
 
-      
+        # Generate rows with the same form data but different credit bureau links
         data_rows = []
         for bureau in credit_bureaus:
             row_data = form_data.copy()  
