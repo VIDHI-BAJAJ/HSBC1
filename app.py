@@ -102,7 +102,7 @@ def display_form():
         strategy_code = st.text_input("Strategy Code", value="")
         search_type = st.selectbox("Search Type", ["Full Search", "Full Search","Full Search"])
         call_type = st.selectbox("Call Type", ["Consumer","Consumer","Consumer"])
-        st.form_submit_button("Submit")   
+        st.form_submit_button("Submit")  
         st.markdown('</div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)

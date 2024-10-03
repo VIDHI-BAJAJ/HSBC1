@@ -2,10 +2,124 @@ import streamlit as st
 import pandas as pd
 
 def display_form():
-    st.image("logo.png", width=200)
+    st.set_page_config(initial_sidebar_state="collapsed")
+    st.markdown(
+     """ 
+     <style>
+       .collapsedControl{
+            visibility: hidden;
+        }
+      </style>
+     """,
+      unsafe_allow_html=True
+  )
+    st.markdown(
+        """
+        <div data-testid="collapsedControl">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    st.image("logo.png", width=250)
     st.markdown('<h1 class="centered-title">Search Criteria</h1>', unsafe_allow_html=True)
+    
+    st.markdown(
+        """
+        <style>
+         .centered-title {
+            text-align: center;  
+            font-size: 40px;     
+            font-weight: bold;   
+            color: black;        
+        }
+        .reportview-container {
+            background-color: black;  
+            color: white;  
+            height: 10px;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        .st-emotion-cache-1vt4y43 {
+        display: inline-flex;
+       -webkit-box-align: center;
+        align-items: center;
+       -webkit-box-pack: center;
+        justify-content: center;
+        font-weight: 400;
+        padding: 0.25rem 0.75rem;
+        border-radius: 10.5rem;
+        min-height: 2.5rem;
+         margin: 0px;
+         line-height: 1.6;
+        color: white !important;
+         width: auto;
+         user-select: none;
+         background-color: rgb(23 143 255) !important;
+         border: 1px solid rgba(49, 51, 63, 0.2);
+        float: right;
+    }
+        .search-label {
+            font-size: 35px;  
+            text-transform: uppercase;  
+            margin-top: 5px;
+        }
+        .required {
+            color: red;  
+        }
+        .custom-button {
+            background-color: #4CAF50; 
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-right: 10px; 
+        }
+        .custom-button-clear {
+            background-color: #f44336; 
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .st-emotion-cache-13ln4jf {
+            max-width: 100% !important;  
+            width: 100% !important;      
+            padding: 4rem 1rem 10rem; !important;
+        }
+        .css-1lcbmhc {
+            padding-left: 0 !important;  
+            padding-right: 0 !important; 
+        }
+        .form-container {
+            margin-left: 200%;  
+            margin-right: 200%;  
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
- 
+    st.markdown(
+        """
+        <div class="reportview-container">
+           <div class="logo-container">
+            <div class="search-label">Search Criteria</div>
+        </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
     if 'unique_id' not in st.session_state:
         st.session_state.unique_id = ""
     if 'application_id' not in st.session_state:
@@ -29,7 +143,7 @@ def display_form():
     if 'call_type' not in st.session_state:
         st.session_state.call_type = "Consumer"
 
-    # Define the form
+   
     with st.form(key="search_form"):
         unique_id = st.text_input("Unique ID", value=st.session_state.unique_id)
         application_id = st.text_input("Application ID *", value=st.session_state.application_id)
@@ -43,10 +157,9 @@ def display_form():
         search_type = st.selectbox("Search Type", ["Full Search", "Partial Search"], index=["Full Search", "Partial Search"].index(st.session_state.search_type))
         call_type = st.selectbox("Call Type", ["Consumer", "Business"], index=["Consumer", "Business"].index(st.session_state.call_type))
 
-        # Submit button inside the form
+
         submitted = st.form_submit_button("Submit")
         if submitted:
-            # Only proceed if Application ID is filled
             if application_id:
                 st.session_state.form_data = {
                     "Unique ID": unique_id,
@@ -61,37 +174,36 @@ def display_form():
                     "Search Type": search_type,
                     "Call Type": call_type,
                 }
-                st.session_state.page = "output"  # Navigate to the output page
+                st.session_state.page = "output"  
             else:
-                st.warning("Please enter the Application ID.")  # Show a warning if not filled
-
-    # Add the Clear button outside the form
+                st.warning("Please enter the Application ID.")  
+                
     if st.button("Clear Criteria"):
-        # Reset the session state for all form fields
         for key in ['unique_id', 'application_id', 'first_name', 'last_name', 'country_code', 
                      'application_date', 'application_time', 'group_member', 'strategy_code', 
                      'search_type', 'call_type']:
             if key in st.session_state:
-                del st.session_state[key]  # Remove key from session state
+                del st.session_state[key]
 
-        # Reset the default values in session state
-        st.session_state.unique_id = "     "
-        st.session_state.application_id = "    "
-        st.session_state.first_name = "    "
-        st.session_state.last_name = "    "
-        st.session_state.country_code = "    "
+        
+        st.session_state.unique_id = "   "
+        st.session_state.application_id = "   "
+        st.session_state.first_name = "   "
+        st.session_state.last_name = "   "
+        st.session_state.country_code = "   "
         st.session_state.application_date = None
         st.session_state.application_time = None
-        st.session_state.group_member = "      "
-        st.session_state.strategy_code = "    "
+        st.session_state.group_member = "   "
+        st.session_state.strategy_code = "   "
         st.session_state.search_type = "Full Search"
         st.session_state.call_type = "Consumer"
 
-        st.rerun()  # Refresh to clear the form
+        st.rerun()  
+        
 
 def display_output():
     st.image("logo.png", width=200)
- 
+
     st.markdown(
         """
         <div class="reportview-container">
@@ -104,20 +216,34 @@ def display_output():
 
     if 'form_data' in st.session_state:
         form_data = st.session_state.form_data
-        form_data["Credit Bureaus"] = '''
-        <a href="./Equifax.py" target="_blank">Equifax</a><br>
-        <a href=" http://192.168.29.25:8503" target="_blank">Experian</a><br>
-        <a href="http://192.168.29.25:8504" target="_blank">Illion</a>
-        '''
 
-        data = pd.DataFrame([form_data])
+        # Create three copies of form_data with different Credit Bureaus
+        credit_bureaus = [
+            '<a href="./Equifax.py" target="_blank">Equifax</a>',
+            '<a href=".\pages\Experian.py" target="_blank">Experian</a>',
+            '<a href="./Illion.py" target="_blank">Illion</a>'
+        ]
+
+      
+        data_rows = []
+        for bureau in credit_bureaus:
+            row_data = form_data.copy()  
+            row_data["Credit Bureaus"] = bureau 
+            data_rows.append(row_data)
+
+    
+        data = pd.DataFrame(data_rows)
 
         st.markdown(
             """
             <style>
-            .st-emotion-cache-13ln4jf {
-                max-width: 100% !important;
+             .st-emotion-cache-13ln4jf {
+                max-width: 100% !important;  
                 width: 100% !important;      
+                padding: 4rem 1rem 10rem; !important;
+            }
+            .stApp {
+                margin-left: 0rem;
             }
             .centered-title {
                 text-align: center;  
@@ -139,7 +265,7 @@ def display_output():
             }
             .dataframe {
                 margin-right: 100px;
-                margin-left:100px;
+                margin-left: 100px;
             }
             .css-1lcbmhc {
                 padding-left: 0 !important;  
@@ -148,23 +274,39 @@ def display_output():
             .back-button {
                 margin-left: 20%;  
             }
-            .stButton{
+            .stButton {
                 margin-left: 110px;
+            }
+            .st-emotion-cache-1vt4y43 {
+                display: inline-flex;
+                -webkit-box-align: center;
+                align-items: center;
+                -webkit-box-pack: center;
+                justify-content: center;
+                font-weight: 400;
+                padding: 0.25rem 0.75rem;
+                border-radius: 0.5rem;
+                min-height: 2.5rem;
+                margin: 0px;
+                line-height: 1.6;
+                color: white;
+                width: auto;
+                user-select: none;
+                background-color: rgb(22 133 238 / 99%);
+                border: 1px solid rgba(49, 51, 63, 0.2);
             }
             </style>
             """,
             unsafe_allow_html=True
         )
 
+        # Render the data including links in a table
         st.markdown(data.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-
-    st.markdown('<div class="back-button">', unsafe_allow_html=True)
     if st.button("Return"):
         if 'form_data' in st.session_state:
             del st.session_state.form_data
         st.session_state.page = "form"
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # Determine which page to show
 if 'page' not in st.session_state:
