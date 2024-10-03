@@ -4,15 +4,24 @@ import plotly.express as px
 from lxml import etree
 import io
 
-
 def load_xml(file):
-    try:
+   try:
         tree = etree.parse(file)
         root = tree.getroot()
         return root
-    except Exception as e:
+        
+   except Exception as e:
         st.error(f"Error loading XML file: {e}")
         return None
+
+def extract_ids_from_xml(root):
+    header_segment = root.find(".//HeaderSegment")
+    if header_segment is not None:
+        provenir_id = header_segment.get("ProvenirID", "N/A")
+        unique_id = header_segment.get("UniqueID", "N/A")
+        return provenir_id, unique_id
+
+    return "N/A", "N/A"
 
 
 def extract_data_for_account_lxml(element):
@@ -98,7 +107,7 @@ def  request_page():
     st.write(".")
     
 def raw_page():
-    st.title("Raw Table")
+    st.title("Raw Data Table")
 
     file = './1_Account_035_Result.xml'
     root = load_xml(file)
@@ -119,7 +128,7 @@ def raw_page():
 
 
 def analyze_page():
-    st.title("Analysis")
+    st.title("Analysis Page")
 
     if 'data' not in st.session_state or st.session_state.data.empty:
         st.error("No data available to plot. Please check the XML file.")
@@ -250,13 +259,26 @@ def main():
         </style>
     """, unsafe_allow_html=True)
 
-    # Add Provenir ID and Reference# at the top
-    st.markdown("""
+    # Load the XML file
+    file = './1_Account_035_Result.xml'
+    root = load_xml(file)
+
+    if root is None:
+        st.error("Failed to load XML file.")
+        return
+
+  
+    provenir_id, unique_id = extract_ids_from_xml(root)
+
+
+    st.markdown(f"""
         <div class='top-info'>
-        <b>Provenir ID:</b> AUCMAP202401120802374200002<br>
-        <b>Reference#:</b> 2024012639315
+        <b>Provenir ID:</b> {provenir_id}<br>
+        <b>Unique ID:</b> {unique_id}
         </div>
     """, unsafe_allow_html=True)
+
+
 
     st.image("logo.png", width=200)
 
@@ -372,8 +394,7 @@ def main():
     elif st.session_state.page == "Request":
        request_page()
     else:
-        st.title("Aggregated Table")
-       
+        
         st.session_state.page = "account_details"
         st.write(f"{st.session_state.account_number}")
 

@@ -94,10 +94,12 @@ def extract_psummary_data(root):
 
     return pd.DataFrame(psummary_data)
 
+def  request_page():
+    st.write(".")
+    
 def raw_page():
-    st.title("Raw Data Table")
+    st.title("Raw Table")
 
-    # Load the XML file
     file = './1_Account_035_Result.xml'
     root = load_xml(file)
 
@@ -117,7 +119,7 @@ def raw_page():
 
 
 def analyze_page():
-    st.title("Analysis Page")
+    st.title("Analysis")
 
     if 'data' not in st.session_state or st.session_state.data.empty:
         st.error("No data available to plot. Please check the XML file.")
@@ -152,6 +154,7 @@ def analyze_page():
             st.session_state.page = "search"
 
 
+        
 def download_xml_button(xml_content, filename):
     xml_bytes = io.BytesIO()
     xml_bytes.write(xml_content.encode('utf-8'))
@@ -161,14 +164,12 @@ def download_xml_button(xml_content, filename):
         data=xml_bytes,
         file_name=filename,
         mime="application/xml"
-    )
+)
+
 
 
 def main():
-   
-    st.set_page_config(layout="wide")
-
-   
+ 
     st.markdown(""" 
         <style>
         /* Style for the Provenir ID and Reference# */
@@ -210,6 +211,37 @@ def main():
     background-color: rgb(240 240 240);
     border: 2px solid rgb(0 0 0);
 }
+    @media (max-width: 1024px) {
+        .st-emotion-cache-1vt4y43 {
+            width: 100%;  /* Make the buttons take full width on smaller screens */
+            margin-bottom: 10px;  /* Add space between buttons */
+        }
+    }
+
+    @media (max-width: 768px) {
+        .st-emotion-cache-1vt4y43 {
+            font-size: 12px;  /* Reduce the font size for smaller screens */
+            padding: 0.2rem 0.6rem;  /* Reduce padding for better fit */
+        }
+        .st-emotion-cache-165ax5l {
+    width: 90% !important;
+    margin-bottom: 1rem;
+    color: rgb(49, 51, 63);
+    border-collapse: collapse;
+    border: 1px solid rgba(49, 51, 63, 0.1);
+    margin-left: 50px;
+}
+    }
+      @media (max-width: 620px){
+    .st-emotion-cache-165ax5l {
+    width: 50% !important;
+    margin-bottom: 1rem;
+    color: rgb(49, 51, 63);
+    border-collapse: collapse;
+    border: 1px solid rgba(49, 51, 63, 0.1);
+    margin-left: 20px;
+}
+}
         /* Add spacing below header */
         .header-section {
             padding-bottom: 20px;
@@ -228,14 +260,19 @@ def main():
 
     st.image("logo.png", width=200)
 
-    col1, col2, col3, col4, col5, col6, col7, col8 = st.columns([1, 1, 1, 1, 1, 1, 1, 1])
+    col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1, 1, 1, 1, 1, 1, 1, 1,1])
 
     with col1:
         if st.button("Request"):
-                st.session_state.page = "Request"
+                request_data = f"<Request><AccountNumber>{st.session_state.account_number}</AccountNumber></Request>"
+                download_xml_button(request_data, "request.xml")
+        st.session_state.page = "Request"
+                
     with col2:
           if st.button("Response"):
-                st.session_state.page = "Response"
+                response_data = etree.tostring(root, pretty_print=True, encoding='utf8').decode('utf8')
+                download_xml_button(response_data, "response.xml")
+
     with col3:
           if st.button("Demograph"):
                 st.session_state.page = "Demograph"
@@ -254,6 +291,9 @@ def main():
     with col8:
           if st.button("Raw"):
                 st.session_state.page = "Raw"
+    with col9:
+          if st.button("Aggregated"):
+                st.session_state.page = "Aggregated"
     st.markdown(
         """
         <style>
@@ -329,7 +369,11 @@ def main():
         analyze_page()
     elif st.session_state.page == "Raw":
        raw_page()
+    elif st.session_state.page == "Request":
+       request_page()
     else:
+        st.title("Aggregated Table")
+       
         st.session_state.page = "account_details"
         st.write(f"{st.session_state.account_number}")
 
