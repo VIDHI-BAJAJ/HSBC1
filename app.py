@@ -102,27 +102,27 @@ def display_form():
         strategy_code = st.text_input("Strategy Code", value="")
         search_type = st.selectbox("Search Type", ["Full Search", "Full Search","Full Search"])
         call_type = st.selectbox("Call Type", ["Consumer","Consumer","Consumer"])
-        st.form_submit_button("Submit")  
+        st.form_submit_button("Submit")   
         st.markdown('</div>', unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
 
-    with col1:
-        if st.button("Submit"):
-            st.session_state.form_data = {
-                "Unique ID": unique_id,
-                "Application ID": application_id,
-                "First Name": first_name,
-                "Last Name": last_name,
-                "Country Code": country_code,
-                "Application Date": application_date,
-                "Application Time": application_time,
-                "Group Member": group_member,
-                "Strategy Code": strategy_code,
-                "Search Type": search_type,
-                "Call Type": call_type,
-            }
-            st.session_state.page = "output"
+    # with col1:
+    #     if st.button("Submit"):
+    #         st.session_state.form_data = {
+    #             "Unique ID": unique_id,
+    #             "Application ID": application_id,
+    #             "First Name": first_name,
+    #             "Last Name": last_name,
+    #             "Country Code": country_code,
+    #             "Application Date": application_date,
+    #             "Application Time": application_time,
+    #             "Group Member": group_member,
+    #             "Strategy Code": strategy_code,
+    #             "Search Type": search_type,
+    #             "Call Type": call_type,
+    #         }
+    #         st.session_state.page = "output"
 
     with col2:
         if st.button("Clear Criteria"):

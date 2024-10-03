@@ -15,25 +15,6 @@ def load_xml(file):
         return None
 
 
-def search_account_by_number(element, account_number):
-    results = []
-    account_elements = element.xpath(f"//*[contains(text(), '{account_number}')]")
-    for account in account_elements:
-        results.append({
-            "AccountNumber": account.text,
-        })
-    
-    return results
-
-#     if account_number:
-#         api_url = f"https://api.example.com/account/details/{account_number}"  
-#         response = requests.get(api_url)
-        
-#         if response.status_code == 200:
-#             st.write(response.json()) 
-#         else:
-#             st.error("Failed to fetch details.")
-
 def extract_data_for_account_lxml(element):
     raw_data = []
     aggregated_data = []
@@ -43,24 +24,40 @@ def extract_data_for_account_lxml(element):
     for interface in interface_aggregations:
         aggregation_locals = interface.xpath(".//AggregationLocal")
         for agg_local in aggregation_locals:
-            
-      
+
+       
             raw_items = agg_local.xpath("./Raw")
             for raw_item in raw_items:
                 name = raw_item.get("Name")
                 value = raw_item.get("Value")
                 raw_data.append({"Name": name, "Value": value})
 
+            
             aggregated_items = agg_local.xpath("./Aggregated")
             for agg_item in aggregated_items:
                 name = agg_item.get("Name")
                 value = agg_item.get("Value")
                 description = agg_item.get("Description")
+
+                if "Demographics" in name:
+                    group = "G1 Demographics"
+                elif "Age" in name:
+                    group = "G2 Age"
+                elif "Income" in name:
+                    group = "G3 Income"
+                elif "Education" in name:
+                    group = "G4 Education"
+                else 
+
                 aggregated_data.append({
                     "Name": name,
                     "Value": value,
-                    "Description": description
+                    "Description": description,
+                    "Group": group
                 })
+
+    
+    aggregated_data = sorted(aggregated_data, key=lambda x: x["Name"])
 
     return raw_data, aggregated_data
 
@@ -120,25 +117,108 @@ def analyze_page():
         
         if st.button("Back to Search", key="back_to_home_details"):
             st.session_state.page = "search"
-        
-# def download_xml_button(xml_content, filename):
-#     xml_bytes = io.BytesIO()
-#     xml_bytes.write(xml_content.encode('utf-8'))
-#     xml_bytes.seek(0)
-#     st.download_button(
-#         label=f"Download {filename}",
-#         data=xml_bytes,
-#         file_name=filename,
-#         mime="application/xml"
-#     )
 
+
+def download_xml_button(xml_content, filename):
+    xml_bytes = io.BytesIO()
+    xml_bytes.write(xml_content.encode('utf-8'))
+    xml_bytes.seek(0)
+    st.download_button(
+        label=f"Download {filename}",
+        data=xml_bytes,
+        file_name=filename,
+        mime="application/xml"
+    )
 
 def main():
-    st.title("User Details")
+    st.image("logo.png", width=300)
+     
+    col1, col2, col3 = st.columns(3)
 
+    with col1:
+            if st.button("Request"):
+                request_data = f"<Request><AccountNumber>{st.session_state.account_number}</AccountNumber></Request>"
+                download_xml_button(request_data, "request.xml")
+
+    with col2:
+            if st.button("Response"):
+                response_data = etree.tostring(root, pretty_print=True, encoding='utf8').decode('utf8')
+                download_xml_button(response_data, "response.xml")
+
+    with col3:
+            if st.button("Analyze"):
+                st.session_state.page = "analyze"
+
+
+
+   
+    st.markdown(
+        """
+        <style>
+         .reportview-container {
+                background-color: red;  
+                color: white;  
+                height: 5px;
+                width: 100%;
+                margin-bottom: 30px;
+            }
+            .logo-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .dataframe {
+                margin-right: 500px;
+                margin-left:500px;
+            }
+       
+        .st-emotion-cache-13ln4jf {
+            max-width: 100% !important;  
+            width: 100% !important;      
+            padding: 4rem 1rem 10rem !important;
+        }
+        .css-1lcbmhc {
+            padding-left: 0 !important;  
+            padding-right: 0 !important; 
+        }
+        .st-emotion-cache-165ax5l {
+           width: 70% !important;
+           margin-bottom: 1rem;
+            color: rgb(49, 51, 63);
+            border-collapse: collapse;
+            border: 1px solid rgba(49, 51, 63, 0.1);
+            margin-left: 180px; !important;
+}
+      .st-emotion-cache-a51556 {
+    border-bottom: 1px solid rgba(49, 51, 63, 0.1);
+    border-right: 1px solid rgba(49, 51, 63, 0.1);
+    vertical-align: middle;
+    padding: 0.25rem 0.375rem;
+    font-weight: 400;
+    color: rgba(49, 51, 63, 0.6);
+    display: none;
+}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        """
+        <div class="reportview-container">
+           <div class="logo-container">
+        </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+   
     if 'page' not in st.session_state:
         st.session_state.page = "search"
+    if 'account_number' not in st.session_state:
+        st.session_state.account_number = ""
 
+ 
     file = './1_Account_035_Result.xml'
     root = load_xml(file)
 
@@ -148,56 +228,21 @@ def main():
     if st.session_state.page == "analyze":
         analyze_page()
 
-    elif st.session_state.page == "account_details":
-        st.write(f"Results for Account Number: {st.session_state.account_number}")
+    else:
+        st.session_state.page = "account_details"
+        st.write(f"{st.session_state.account_number}")
 
         raw_data, aggregated_data = extract_data_for_account_lxml(root)
 
-        st.write("Raw Data:")
-        raw_df = pd.DataFrame(raw_data)
-        if not raw_df.empty:
-            st.dataframe(raw_df)
-        else:
-            st.write("No Raw Data Found.")
-
-        st.write("Aggregated Data:")
+      
         agg_df = pd.DataFrame(aggregated_data)
         if not agg_df.empty:
-            st.dataframe(agg_df)
+            st.table(agg_df)
         else:
             st.write("No Aggregated Data Found.")
 
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            if st.button("Request"):
-                request_data = f"<Request><AccountNumber>{st.session_state.account_number}</AccountNumber></Request>"
-                download_xml_button(request_data, "request.xml")
-
-        with col2:
-            if st.button("Response"):
-                response_data = etree.tostring(root, pretty_print=True, encoding='utf8').decode('utf8')
-                download_xml_button(response_data, "response.xml")
-
-        with col3:
-            if st.button("Analyze"):
-                st.session_state.page = "analyze"
-
         if st.button("Back to Search", key="back_to_home_details"):
             st.session_state.page = "search"
-
-    else:
-        account_number = st.text_input("Enter Account Number to search:")
-
-        if account_number and st.button("Search"):
-            results = search_account_by_number(root, account_number)
-
-            if results:
-                st.session_state.results = results
-                st.session_state.account_number = account_number
-                st.session_state.page = "account_details"
-            else:
-                st.write(f"No results found for Account Number: {account_number}")
 
 if __name__ == "__main__":
     main()
