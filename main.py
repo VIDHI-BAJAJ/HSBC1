@@ -25,14 +25,14 @@ def search_account_by_number(element, account_number):
     
     return results
 
-#     if account_number:
-#         api_url = f"https://api.example.com/account/details/{account_number}"  
-#         response = requests.get(api_url)
+    if account_number:
+        api_url = f"https://api.example.com/account/details/{account_number}"  
+        response = requests.get(api_url)
         
-#         if response.status_code == 200:
-#             st.write(response.json()) 
-#         else:
-#             st.error("Failed to fetch details.")
+        if response.status_code == 200:
+            st.write(response.json()) 
+        else:
+            st.error("Failed to fetch details.")
 
 def extract_data_for_account_lxml(element):
     raw_data = []

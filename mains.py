@@ -56,7 +56,7 @@ def display_form():
          user-select: none;
          background-color: rgb(23 143 255) !important;
          border: 1px solid rgba(49, 51, 63, 0.2);
-        float: right;
+        float: center;
     }
         .search-label {
             font-size: 35px;  
@@ -200,7 +200,7 @@ def display_form():
 
         st.rerun()  
         
-
+# 2nd page
 def display_output():
     st.image("logo.png", width=200)
 
@@ -219,6 +219,7 @@ def display_output():
 
         # Create three copies of form_data with different Credit Bureaus
         credit_bureaus = [
+
             '<a href="./Equifax.py" target="_blank">Equifax</a>',
             '<a href="/pages/Experian.py" target="_blank">Experian</a>',
             '<a href="./Illion.py" target="_blank">Illion</a>'
