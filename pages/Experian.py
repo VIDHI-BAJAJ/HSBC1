@@ -14,7 +14,7 @@ def load_xml(file):
         st.error(f"Error loading XML file: {e}")
         return None
 
-#Extracting Of Raw And Aggregated data from Xml file
+# #Extracting Of Raw And Aggregated data from Xml file
 def extract_data_for_account_lxml(element):
     raw_data = []
     aggregated_data = []
@@ -36,45 +36,81 @@ def extract_data_for_account_lxml(element):
                 value = agg_item.get("Value")
                 description = agg_item.get("Description")
 
-                group_number = None
-                
-                if "G1" in name:
-                    group_number = 1  
-                elif "G2" in name:
-                    group_number = 2  
-                elif "G3" in name:
-                    group_number = 3  
-                elif "G4" in name:
-                    group_number = 4  
-                elif "G5" in name:
-                    group_number = 5  
-                elif "G6" in name:
-                    group_number = 6  
-                elif "G7" in name:
-                    group_number = 7  
-                elif "G8" in name:
-                    group_number = 8  
-                elif "G9" in name:
-                    group_number = 9  
-                elif "G10" in name:
-                    group_number = 10 
-                else:
-                    group_number = 11
-                    
-                group_number = min(group_number, 11)
-                
-#Adding the code in  aggregated_data
-                aggregated_data.append({
-                    "Name": name,
-                    "Value": value,
-                    "Description": description,
-                })
+                # Initialize category variable
+                category = ""
 
-  # Sorting The aggreagated data in sorting format
-    aggregated_data = sorted(aggregated_data, key=lambda x: x["Name"])
+                # Determine the category based on the name
+                if name.startswith("G1_"):
+                    category = "G1_Demographics"
+                elif name.startswith("G2_"):
+                    category = "G2_Age"
+                elif name.startswith("G3_"):
+                    category = "G3_Credit History"
+                elif name.startswith("G4_"):
+                    category = "G4_Employment"
+                elif name.startswith("G5_"):
+                    category = "G5_Financial Status"
+                elif name.startswith("G6_"):
+                    category = "G6_Inquiries"
+                elif name.startswith("G7_"):
+                    category = "G7_Public Records"
+                elif name.startswith("G8_"):
+                    category = "G8_Collections"
+                elif name.startswith("G9_"):
+                    category = "G9_Fraud"
+                elif name.startswith("G10_"):
+                    category = "G10_Account Details"
+                else:
+                    category = "Other"
+
+                # Append to aggregated_data as a row
+                aggregated_data.append([
+                    category,
+                    name,
+                    value,
+                    description,
+                ])
+
+    # Custom sorting order
+    custom_category_order = {
+        "G1_Demographics": 1,
+        "G2_Age": 2,
+        "G3_Credit History": 3,
+        "G4_Employment": 4,
+        "G5_Financial Status": 5,
+        "G6_Inquiries": 6,
+        "G7_Public Records": 7,
+        "G8_Collections": 8,
+        "G9_Fraud": 9,
+        "G10_Account Details": 10,
+        "Other": 11,
+    }
+
+    # Sort the aggregated data by category and then by Name
+    aggregated_data.sort(key=lambda x: (custom_category_order.get(x[0], 11), x[1]))
 
     return raw_data, aggregated_data
-    
+
+def display_data(aggregated_data):
+    current_category = None
+    for entry in aggregated_data:
+        category = entry["Category"]
+        
+        # Only print the category header if it's different from the last printed category
+        if category != current_category:
+            if current_category is not None:
+                print()  # Add a blank line before the next category
+            print(category)  # Print category header
+            current_category = category
+            
+        # Print data entries with specific formatting
+        print(f"{entry['Name']}\t{entry['Value']}\t{entry['Description']}")  # Print data entries
+
+# Example call
+# Assuming 'element' is your parsed XML data
+# raw_data, aggregated_data = extract_data_for_account_lxml(element)
+# display_data(aggregated_data)  # Call this to see the formatted output
+
 # Code Of the Raw Button    
 def raw_page():
     st.title("Raw Data Table")
@@ -170,7 +206,29 @@ def  request_page():
 
 # Code Of the Response Button 
 def  response_page():
-    st.write("response")
+       # File path to the uploaded XML file
+    file_path = './1_Account_035_Result.xml'
+
+    # Read and display the XML content
+    with open(file_path, 'r') as file:
+        xml_content = file.read()
+
+    # Create two columns for the header and download button side by side
+    col1, col2 = st.columns([3, 1])
+
+    with col1:
+        st.subheader("XML File Content")
+    
+    with col2:
+        st.download_button(
+            label="Download",
+            data=xml_content,
+            file_name="response.xml",
+            mime="application/xml"
+        )
+
+    # Display the XML content in a code block below
+    st.code(xml_content, language='xml')
 
 # Code Of the Demograph Button 
 def  demograph_page():
@@ -246,6 +304,14 @@ def main():
     background-color: rgb(240 240 240);
     border: 1.5px solid rgb(0 0 0);
 }
+.st-emotion-cache-463q5x {
+    margin: 0px;
+    padding-right: 2.75rem;
+    color: rgb(49, 51, 63);
+    border-radius: 0.5rem;
+    background-color: white;
+}
+
 
     @media (max-width: 1024px) {
         .st-emotion-cache-1vt4y43 {
@@ -329,6 +395,7 @@ def main():
         with col2:
             if st.button("Response"):
                 st.session_state.page = "Response"
+
         with col3:
             if st.button("Demograph"):
                 st.session_state.page = "Demograph"
