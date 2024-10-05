@@ -1,29 +1,13 @@
 import streamlit as st
 import pandas as pd
 
+#main page
 def display_form():
-    st.set_page_config(initial_sidebar_state="collapsed")
+    st.image("logo.png", width=250) #Logo
+    st.markdown('<h1 class="centered-title">Search Criteria</h1>', unsafe_allow_html=True) #Search Criterian
+#styling 
     st.markdown(
-     """ 
-     <style>
-       .collapsedControl{
-            visibility: hidden;
-        }
-      </style>
-     """,
-      unsafe_allow_html=True
-  )
-    st.markdown(
-        """
-        <div data-testid="collapsedControl">
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    st.image("logo.png", width=250)
-    st.markdown('<h1 class="centered-title">Search Criteria</h1>', unsafe_allow_html=True)
-    
-    st.markdown(
+        
         """
         <style>
          .centered-title {
@@ -108,7 +92,8 @@ def display_form():
         """,
         unsafe_allow_html=True
     )
-
+    
+#Arrangment of the information on the page
     st.markdown(
         """
         <div class="reportview-container">
@@ -120,6 +105,7 @@ def display_form():
         unsafe_allow_html=True
     )
     
+    #form
     if 'unique_id' not in st.session_state:
         st.session_state.unique_id = ""
     if 'application_id' not in st.session_state:
@@ -157,7 +143,7 @@ def display_form():
         search_type = st.selectbox("Search Type", ["Full Search", "Partial Search"], index=["Full Search", "Partial Search"].index(st.session_state.search_type))
         call_type = st.selectbox("Call Type", ["Consumer", "Business"], index=["Consumer", "Business"].index(st.session_state.call_type))
 
-
+#submit info
         submitted = st.form_submit_button("Submit")
         if submitted:
             if application_id:
@@ -177,7 +163,7 @@ def display_form():
                 st.session_state.page = "output"  
             else:
                 st.warning("Please enter the Application ID.")  
-                
+    #clearCriteria Info            
     if st.button("Clear Criteria"):
         for key in ['unique_id', 'application_id', 'first_name', 'last_name', 'country_code', 
                      'application_date', 'application_time', 'group_member', 'strategy_code', 
@@ -202,8 +188,9 @@ def display_form():
         
 # 2nd page
 def display_output():
-    st.image("logo.png", width=200)
-
+    st.image("logo.png", width=200) #logo Arrangment
+    
+#Arrangment of the information on the page
     st.markdown(
         """
         <div class="reportview-container">
@@ -232,9 +219,10 @@ def display_output():
             row_data["Credit Bureaus"] = bureau 
             data_rows.append(row_data)
 
-    
+    #Generate output in Table format
         data = pd.DataFrame(data_rows)
 
+    #Styling
         st.markdown(
             """
             <style>
@@ -304,10 +292,13 @@ def display_output():
         # Render the data including links in a table
         st.markdown(data.to_html(escape=False, index=False), unsafe_allow_html=True)
 
+     #Return Button help to go Back
     if st.button("Return"):
         if 'form_data' in st.session_state:
             del st.session_state.form_data
         st.session_state.page = "form"
+        
+        
 
 # Determine which page to show
 if 'page' not in st.session_state:

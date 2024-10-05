@@ -4,26 +4,17 @@ import plotly.express as px
 from lxml import etree
 import io
 
+# Load the XML file
 def load_xml(file):
-   try:
+    try:
         tree = etree.parse(file)
         root = tree.getroot()
         return root
-        
-   except Exception as e:
+    except Exception as e:
         st.error(f"Error loading XML file: {e}")
         return None
 
-def extract_ids_from_xml(root):
-    header_segment = root.find(".//HeaderSegment")
-    if header_segment is not None:
-        provenir_id = header_segment.get("ProvenirID", "N/A")
-        unique_id = header_segment.get("UniqueID", "N/A")
-        return provenir_id, unique_id
-
-    return "N/A", "N/A"
-
-
+#Extracting Of Raw And Aggregated data from Xml file
 def extract_data_for_account_lxml(element):
     raw_data = []
     aggregated_data = []
@@ -71,41 +62,20 @@ def extract_data_for_account_lxml(element):
                     group_number = 11
                     
                 group_number = min(group_number, 11)
-                    
+                
+#Adding the code in  aggregated_data
                 aggregated_data.append({
                     "Name": name,
                     "Value": value,
                     "Description": description,
                 })
 
+  # Sorting The aggreagated data in sorting format
     aggregated_data = sorted(aggregated_data, key=lambda x: x["Name"])
 
     return raw_data, aggregated_data
-
-
-def extract_psummary_data(root):
-    psummary_data = []
-
-    for psummary in root.xpath(".//PSUMMARY"):
-        creditor_name = psummary.findtext("CreditorName", default="N/A")
-        first_reported_limit_amt = int(psummary.findtext("FirstReportedLimitAmt", default=0))
-        current_limit = int(psummary.findtext("CurrentLimit", default=0))
-        account_status = psummary.findtext("AccountStatus", default="N/A")
-        credit_card_type = psummary.findtext("CreditCardType", default="N/A")
-
-        psummary_data.append({
-            'CreditorName': creditor_name,
-            'FirstReportedLimitAmt': first_reported_limit_amt,
-            'CurrentLimit': current_limit,
-            'AccountStatus': account_status,
-            'CreditCardType': credit_card_type  
-        })
-
-    return pd.DataFrame(psummary_data)
-
-def  request_page():
-    st.write(".")
     
+# Code Of the Raw Button    
 def raw_page():
     st.title("Raw Data Table")
 
@@ -126,44 +96,64 @@ def raw_page():
     else:
         st.write("No Raw Data Found.")
 
+# Extract psummary data for analysis
+def extract_psummary_data(root):
+    psummary_data = []
+    
+    for psummary in root.xpath(".//PSUMMARY"):
+        creditor_name = psummary.findtext("CreditorName", default="N/A")
+        first_reported_limit_amt = int(psummary.findtext("FirstReportedLimitAmt", default=0))
+        current_limit = int(psummary.findtext("CurrentLimit", default=0))
+        account_status = psummary.findtext("AccountStatus", default="N/A")
+        credit_card_type = psummary.findtext("CreditCardType", default="N/A")
+        
+        psummary_data.append({
+            'CreditorName': creditor_name,
+            'FirstReportedLimitAmt': first_reported_limit_amt,
+            'CurrentLimit': current_limit,
+            'AccountStatus': account_status,
+            'CreditCardType': credit_card_type  
+        })
+        
+    return pd.DataFrame(psummary_data)
 
+# Analyze page display
 def analyze_page():
-    st.title("Analysis Page")
-
+    st.subheader("Analysis Page")
+    
     if 'data' not in st.session_state or st.session_state.data.empty:
         st.error("No data available to plot. Please check the XML file.")
         return
 
     data = st.session_state.data
     graph_type = st.selectbox("Select a graph type to display:", ["Line Graph", "Bar Graph", "Pie Chart"])
+    
+    chart_placeholder = st.empty()
 
-    if graph_type == "Line Graph":
-        st.subheader("Line Graph of FirstReportedLimitAmt by Creditor Name")
-        line_fig = px.line(data, x='CreditorName', y='FirstReportedLimitAmt', title="First Reported Limit Amount by Creditor Name")
-        st.plotly_chart(line_fig)
+    with chart_placeholder.container():
+        if graph_type == "Line Graph":
+            st.subheader("Line Graph of FirstReportedLimitAmt by Creditor Name")
+            line_fig = px.line(data, x='CreditorName', y='FirstReportedLimitAmt', title="First Reported Limit Amount by Creditor Name")
+            st.plotly_chart(line_fig)
 
-    elif graph_type == "Bar Graph":
-        st.subheader("Bar Graph of CurrentLimit by Creditor Name")
-        bar_fig = px.bar(data, x='CreditorName', y='CurrentLimit', title="Current Limit by Creditor Name")
-        st.plotly_chart(bar_fig)
+        elif graph_type == "Bar Graph":
+            st.subheader("Bar Graph of CurrentLimit by Creditor Name")
+            bar_fig = px.bar(data, x='CreditorName', y='CurrentLimit', title="Current Limit by Creditor Name")
+            st.plotly_chart(bar_fig)
 
-    elif graph_type == "Pie Chart":
-        st.subheader("Pie Chart of Account Status (Open vs Closed)")
-        filtered_data = data[data['AccountStatus'].isin(['Open', 'Closed'])]
-        if filtered_data.empty:
-            st.error("No data available for Open or Closed accounts.")
-            return
+        elif graph_type == "Pie Chart":
+            st.subheader("Pie Chart of Account Status (Open vs Closed)")
+            filtered_data = data[data['AccountStatus'].isin(['Open', 'Closed'])]
+            if filtered_data.empty:
+                st.error("No data available for Open or Closed accounts.")
+                return
 
-        pie_data = filtered_data['AccountStatus'].value_counts().reset_index()
-        pie_data.columns = ['AccountStatus', 'Count']
-        pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses")
-        st.plotly_chart(pie_fig)
+            pie_data = filtered_data['AccountStatus'].value_counts().reset_index()
+            pie_data.columns = ['AccountStatus', 'Count']
+            pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses")
+            st.plotly_chart(pie_fig)
 
-        if st.button("Back to Search", key="back_to_home_details"):
-            st.session_state.page = "search"
-
-
-        
+#Download the XML File of Request      
 def download_xml_button(xml_content, filename):
     xml_bytes = io.BytesIO()
     xml_bytes.write(xml_content.encode('utf-8'))
@@ -174,11 +164,48 @@ def download_xml_button(xml_content, filename):
         file_name=filename,
         mime="application/xml"
 )
+# Code Of the Request Button 
+def  request_page():
+    st.write("request")
 
+# Code Of the Response Button 
+def  response_page():
+    st.write("response")
 
+# Code Of the Demograph Button 
+def  demograph_page():
+    st.write("demograph")
+    
+# Code Of the vericheck Button 
+def  vericheck_page():
+    st.write("vericheck")
 
+# Code Of the aml Button 
+def aml_page():
+    st.write("aml")
+
+# Code Of the fraud Button 
+def fraud_page():
+    st.write("fraud")
+    
+# Code Of the summary Button 
+def  summary_page() :
+    st.write("summary") 
+    
+# Extract Provenir ID and Unique ID from XML file
+def extract_ids_from_xml(root):
+    header_segment = root.find(".//HeaderSegment")
+    if header_segment is not None:
+        provenir_id = header_segment.get("ProvenirID", "N/A")
+        unique_id = header_segment.get("UniqueID", "N/A")
+        return provenir_id, unique_id
+
+    return "N/A", "N/A"
+
+# Main function
 def main():
- 
+    
+ #Styling
     st.markdown(""" 
         <style>
         /* Style for the Provenir ID and Reference# */
@@ -201,8 +228,7 @@ def main():
             font-weight: bold;
             color: black;
         }
-
-        .st-emotion-cache-1vt4y43 {
+      .st-emotion-cache-1vt4y43 {
     display: inline-flex;
     -webkit-box-align: center;
     align-items: center;
@@ -210,16 +236,17 @@ def main():
     justify-content: center;
     font-weight: 400;
     padding: 0.25rem 0.75rem;
-    border-radius: 0.1rem; 
-    min-height: 1.5rem;
-    margin: 0px;
+    border-radius: 0.1rem;
+    /* min-height: 1.5rem; */
+    margin: 4px;
     line-height: 1.3;
-    color: inherit;
-    width: auto;
+    color: black;
+    width: 110px;
     user-select: none;
     background-color: rgb(240 240 240);
-    border: 2px solid rgb(0 0 0);
+    border: 1.5px solid rgb(0 0 0);
 }
+
     @media (max-width: 1024px) {
         .st-emotion-cache-1vt4y43 {
             width: 100%;  /* Make the buttons take full width on smaller screens */
@@ -251,6 +278,16 @@ def main():
     margin-left: 20px;
 }
 }
+.navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: white; /* Change to match your app's theme */
+            z-index: 1000; /* Ensure it stays on top of other elements */
+            padding: 10px; /* Optional padding */
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Optional border */
+        }
         /* Add spacing below header */
         .header-section {
             padding-bottom: 20px;
@@ -259,7 +296,7 @@ def main():
         </style>
     """, unsafe_allow_html=True)
 
-    # Load the XML file
+    # Load the XML file for Provenir_id and Unique_id
     file = './1_Account_035_Result.xml'
     root = load_xml(file)
 
@@ -278,44 +315,48 @@ def main():
         </div>
     """, unsafe_allow_html=True)
 
+    st.image("logo.png", width=200) #logo Arrangment
+    
+    st.markdown('<div class="navbar">', unsafe_allow_html=True)
+    # Navbar Buttons
+    navbar = st.container()
+    with navbar:
+        col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(10)
 
-
-    st.image("logo.png", width=200)
-
-    col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns([1, 1, 1, 1, 1, 1, 1, 1,1])
-
-    with col1:
-        if st.button("Request"):
-                request_data = f"<Request><AccountNumber>{st.session_state.account_number}</AccountNumber></Request>"
-                download_xml_button(request_data, "request.xml")
-        st.session_state.page = "Request"
-                
-    with col2:
-          if st.button("Response"):
-                response_data = etree.tostring(root, pretty_print=True, encoding='utf8').decode('utf8')
-                download_xml_button(response_data, "response.xml")
-
-    with col3:
-          if st.button("Demograph"):
+        with col1:
+            if st.button("Request"):
+               st.session_state.page = "Request"        
+        with col2:
+            if st.button("Response"):
+                st.session_state.page = "Response"
+        with col3:
+            if st.button("Demograph"):
                 st.session_state.page = "Demograph"
-    with col4:
-          if st.button("Analyze"):
+        with col4:
+            if st.button("Analyze"):
                 st.session_state.page = "analyze"
-    with col5:
-          if st.button("VeriCheck"):
+        with col5:
+            if st.button("VeriCheck"):
                 st.session_state.page = "VeriCheck"
-    with col6:
-          if st.button("AML"):
+        with col6:
+            if st.button("AML"):
                 st.session_state.page = "AML"
-    with col7:
-          if st.button("Fraud"):
-                st.session_state.page = "Fraud"   
-    with col8:
-          if st.button("Raw"):
+        with col7:
+            if st.button("Fraud"):
+                st.session_state.page = "Fraud"
+        with col8:
+            if st.button("Raw"):
                 st.session_state.page = "Raw"
-    with col9:
-          if st.button("Aggregated"):
+        with col9:
+            if st.button("Aggregated"):
                 st.session_state.page = "Aggregated"
+        with col10:
+            if st.button("Summary"):
+                st.session_state.page = "Summary"
+
+    st.markdown('</div>', unsafe_allow_html=True)
+                
+#Styling
     st.markdown(
         """
         <style>
@@ -339,7 +380,7 @@ def main():
         .st-emotion-cache-13ln4jf {
             max-width: 100% !important;  
             width: 100% !important;      
-            padding: 4rem 1rem 10rem !important;
+            padding: 4rem 4rem 10rem !important;
         }
         .css-1lcbmhc {
             padding-left: 0 !important;  
@@ -354,18 +395,20 @@ def main():
             margin-left: 180px; !important;
         }
        .st-emotion-cache-a51556 {
-    border-bottom: 1px solid rgba(49, 51, 63, 0.1);
-    border-right: 1px solid rgba(49, 51, 63, 0.1);
-    vertical-align: middle;
-    padding: 0.25rem 0.375rem;
-    font-weight: 400;
-    color: rgba(49, 51, 63, 0.6);
-    display: none;
+           border-bottom: 1px solid rgba(49, 51, 63, 0.1);
+           border-right: 1px solid rgba(49, 51, 63, 0.1);
+           vertical-align: middle;
+           padding: 0.25rem 0.375rem;
+           font-weight: 400;
+           color: rgba(49, 51, 63, 0.6);
+           display: none;
+        }
         </style>
         """,
         unsafe_allow_html=True
     )
 
+#Arrangment of the information on the page
     st.markdown(
         """
         <div class="reportview-container">
@@ -391,21 +434,32 @@ def main():
         analyze_page()
     elif st.session_state.page == "Raw":
        raw_page()
+    elif st.session_state.page == "Response":
+       response_page()
+    elif st.session_state.page == "Raw":
+       raw_page()
     elif st.session_state.page == "Request":
        request_page()
+    elif st.session_state.page == "Demograph":
+        demograph_page()
+    elif st.session_state.page == "VeriCheck":
+        vericheck_page()
+    elif st.session_state.page == "AML":
+        aml_page()
+    elif st.session_state.page == "Fraud":
+        fraud_page()
+    elif st.session_state.page == "Summary":
+       summary_page()    
     else:
-        
-        st.session_state.page = "account_details"
-        st.write(f"{st.session_state.account_number}")
-
+        st.title("Aggregated Data")
+  # Extract raw data using the existing function
         raw_data, aggregated_data = extract_data_for_account_lxml(root)
-
+         # Convert raw data to a DataFrame for display
         agg_df = pd.DataFrame(aggregated_data)
         if not agg_df.empty:
-            st.table(agg_df)
+            st.table(agg_df) # Display the raw data in a table format
         else:
             st.write("No Aggregated Data Found.")
 
-     
 if __name__ == "__main__":
     main()
