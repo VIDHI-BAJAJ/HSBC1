@@ -4,6 +4,7 @@ import plotly.express as px
 from lxml import etree
 import io
 
+
 # Load the XML file
 def load_xml(file):
     try:
@@ -153,7 +154,7 @@ def extract_psummary_data(root):
         
     return pd.DataFrame(psummary_data)
 
-# Analyze page display
+#  Function to create analysis page
 def analyze_page():
     st.subheader("Analysis Page")
     
@@ -200,7 +201,7 @@ def download_xml_button(xml_content, filename):
         file_name=filename,
         mime="application/xml"
 )
-# Code Of the Request Button 
+#  Function to create request page
 def request_page():
     if 'form_data' in st.session_state:
         form_data = st.session_state.form_data
@@ -266,7 +267,7 @@ def request_page():
         )
   
 
-# Code Of the Response Button 
+#  Function to create response page
 def  response_page():
        # File path to the uploaded XML file
     file_path = './1_Account_035_Result.xml'
@@ -292,26 +293,60 @@ def  response_page():
     # Display the XML content in a code block below
     st.code(xml_content, language='xml')
 
-# Code Of the Demograph Button 
+#  Function to create demograph page
 def  demograph_page():
     st.write("demograph")
     
-# Code Of the vericheck Button 
+#  Function to create vericheck page
 def  vericheck_page():
     st.write("vericheck")
 
-# Code Of the aml Button 
+#  Function to create aml page
 def aml_page():
     st.write("aml")
 
-# Code Of the fraud Button 
+# Function to create fraud page
 def fraud_page():
     st.write("fraud")
-    
-# Code Of the summary Button 
-def  summary_page() :
-    st.write("summary") 
-    
+
+
+# Function to create summary page including both raw and aggregated data
+def summary_page():
+    st.title("Summary Page")
+
+    # Load XML file
+    file_path = './1_Account_035_Result.xml'
+    root = load_xml(file_path)
+
+    if root is None:
+        return
+
+    # Extract raw and aggregated data
+    raw_data, aggregated_data = extract_data_for_account_lxml(root)
+
+    # Search bar for the name from XML tags
+    search_name = st.text_input("Enter a name from the XML tags:", "")
+
+    if search_name:
+        # Search for the name in raw data
+        raw_matching_data = next((item for item in raw_data if item["Name"] == search_name), None)
+        
+        # Search for the name in aggregated data
+        aggregated_matching_data = next((item for item in aggregated_data if item[1] == search_name), None)
+
+        # Display raw data if found
+        if raw_matching_data:
+            raw_paragraph = f"The raw data for {raw_matching_data['Name']} is {raw_matching_data['Value']}."
+            st.write(raw_paragraph)
+        
+        # Display aggregated data if found
+        elif aggregated_matching_data:
+            category, name, value, description = aggregated_matching_data
+            aggregated_paragraph = f"The data for {name} under the category {category} is as follows: {description}. The value associated with {name} is {value}."
+            st.write(aggregated_paragraph)
+        else:
+            st.error(f"No data found for the name: {search_name}")
+
 # Extract Provenir ID and Unique ID from XML file
 def extract_ids_from_xml(root):
     header_segment = root.find(".//HeaderSegment")
@@ -578,7 +613,7 @@ def main():
     elif st.session_state.page == "Fraud":
         fraud_page()
     elif st.session_state.page == "Summary":
-       summary_page()    
+        summary_page()  
     else:
         st.title("Aggregated Data")
   # Extract raw data using the existing function
