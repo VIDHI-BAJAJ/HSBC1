@@ -201,8 +201,70 @@ def download_xml_button(xml_content, filename):
         mime="application/xml"
 )
 # Code Of the Request Button 
-def  request_page():
-    st.write("request")
+def request_page():
+    if 'form_data' in st.session_state:
+        form_data = st.session_state.form_data
+
+        # Create three copies of form_data with different Credit Bureaus
+        credit_bureaus = [
+            '<a href="./Equifax.py" target="_blank">Equifax</a>',
+            '<a href="/pages/Experian.py" target="_blank">Experian</a>',
+            '<a href="./Illion.py" target="_blank">Illion</a>'
+        ]
+
+        # Generate rows with the same form data but different credit bureau links
+        data_rows = []
+        for bureau in credit_bureaus:
+            row_data = form_data.copy()
+            row_data["Credit Bureaus"] = bureau
+            data_rows.append(row_data)
+
+        # Generate output in Table format
+        data = pd.DataFrame(data_rows)
+
+        # Styling
+        st.markdown(
+            """
+            <style>
+            .st-emotion-cache-13ln4jf {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 4rem 1rem 10rem; !important;
+            }
+            .dataframe {
+                margin-right: 100px;
+                margin-left: 100px;
+            }
+            .css-1lcbmhc {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # Render the data including links in a table
+        st.markdown(data.to_html(escape=False, index=False), unsafe_allow_html=True)
+        
+        col1, col2 = st.columns([1, 1])
+        # Add a download button for the data
+        with col1:
+           if st.button("Return"):
+            if 'form_data' in st.session_state:
+             del st.session_state.form_data
+        st.session_state.page = "form"
+
+    # Return Button to go Back
+    with col2:
+           csv_data = data.to_csv(index=False).encode('utf-8')
+           st.download_button(
+            label="Download",
+            data=csv_data,
+            file_name='credit_bureau_data.csv',
+            mime='text/csv',
+        )
+  
 
 # Code Of the Response Button 
 def  response_page():

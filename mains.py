@@ -3,7 +3,27 @@ import pandas as pd
 
 #main page
 def display_form():
-    st.image("logo.png", width=250) #Logo
+# Center the logo using st.image and apply CSS to center the image
+    st.markdown(
+    """
+    <style>
+    .container {
+        display: flex;
+        justify-content: center;
+    }
+    </style>
+    <div class="container">
+    """,
+    unsafe_allow_html=True
+)
+
+# Display the image using st.image
+    st.image("logo.png", width=250)
+
+# Close the div tag
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    
     st.markdown('<h1 class="centered-title">Search Criteria</h1>', unsafe_allow_html=True) #Search Criterian
 #styling 
     st.markdown(
@@ -31,14 +51,12 @@ def display_form():
         justify-content: center;
         font-weight: 400;
         padding: 0.25rem 0.75rem;
-        border-radius: 10.5rem;
         min-height: 2.5rem;
          margin: 0px;
          line-height: 1.6;
-        color: white !important;
+        color: black !important;
          width: auto;
          user-select: none;
-         background-color: rgb(23 143 255) !important;
          border: 1px solid rgba(49, 51, 63, 0.2);
         float: center;
     }
@@ -274,14 +292,12 @@ def display_output():
                 justify-content: center;
                 font-weight: 400;
                 padding: 0.25rem 0.75rem;
-                border-radius: 0.5rem;
                 min-height: 2.5rem;
                 margin: 0px;
                 line-height: 1.6;
-                color: white;
+                color: black;
                 width: auto;
                 user-select: none;
-                background-color: rgb(22 133 238 / 99%);
                 border: 1px solid rgba(49, 51, 63, 0.2);
             }
             </style>
