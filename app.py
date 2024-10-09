@@ -2,6 +2,8 @@ import streamlit as st
 from mains import display_form  # Import the form page function
 from Output import display_output  # Import the output page function
 from Equifax import main1  # Assuming main1 is the correct function name for the data page
+from Experian import experian_page  # Assuming main1 is the correct function name for the data page
+from illion import illion_page  # Assuming main1 is the correct function name for the data page
 from analyze import analyze_page # Assuming analyse_page is the correct function name for the anlayze page
 from response import response_page # Assuming response_page is the correct function name for the response page
 from request import request_page # Assuming request_page is the correct function name for the request page
@@ -26,28 +28,32 @@ def main():
        display_form()  # Show the form page
     elif st.session_state.page == "output":
        display_output()  # Show the output page
-    elif st.session_state.page == "data":
+    elif st.session_state.page == "equifax":
        main1()  # Show the data page
+    elif st.session_state.page == "experian":
+       experian_page()# show the experian page
+    elif st.session_state.page == "illion":
+       illion_page() #show the illion page
     elif st.session_state.page == "analyze":
-       analyze_page()
+       analyze_page() #show the analyze page
     elif st.session_state.page == "Response":
-       response_page()
+       response_page() #show the response page
     elif st.session_state.page == "Request":
-       request_page()
+       request_page() #show the request page
     elif st.session_state.page == "Demograph":
-        demograph_page()
+        demograph_page() # show the demograph
     elif st.session_state.page == "VeriCheck":
-        vericheck_page()
+        vericheck_page() # show the vericheck page
     elif st.session_state.page == "AML":
-        aml_page()
+        aml_page() # show the aml page
     elif st.session_state.page == "Fraud":
-        fraud_page()
+        fraud_page() #show the fraud page
     elif st.session_state.page == "Summary":
-        summary_page()  
+        summary_page()  #show the summary page 
     elif st.session_state.page == "Raw":
-        raw_page()
+        raw_page() #show the raw page
     elif st.session_state.page == "Aggregated":
-        aggregated_page()
+        aggregated_page() #show the aggreagted
 
 if __name__ == "__main__":  # Corrected the name check
     main()  # Call the main function to run the app

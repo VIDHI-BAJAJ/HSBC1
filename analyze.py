@@ -46,19 +46,19 @@ def extract_psummary_data(root):
 
     return pd.DataFrame(psummary_data)
 
-# Function to load and extract data from the uploaded XML file
-def load_and_extract_data(xml_file_path):
-    try:
-        tree = etree.parse(xml_file_path)
-        root = tree.getroot()
-        data = extract_psummary_data(root)
-        if data.empty:
-            st.error("No data extracted from the XML file.")
-            return
-        st.session_state.data = data
-        st.success("Data successfully extracted and loaded.")
-    except Exception as e:
-        st.error(f"Error loading XML file: {e}")
+# # Function to load and extract data from the uploaded XML file
+# def load_and_extract_data(xml_file_path):
+#     try:
+#         tree = etree.parse(xml_file_path)
+#         root = tree.getroot()
+#         data = extract_psummary_data(root)
+#         if data.empty:
+#             st.error("No data extracted from the XML file.")
+#             return
+#         st.session_state.data = data
+#         st.success("Data successfully extracted and loaded.")
+#     except Exception as e:
+#         st.error(f"Error loading XML file: {e}")
 
 
 
@@ -171,6 +171,21 @@ def analyze_page():
 
         </style>
     """, unsafe_allow_html=True)
+    
+     if 'data' not in st.session_state:
+        try:
+            tree = etree.parse('./1_Account_035_Result.xml')
+            root = tree.getroot()
+            data = extract_psummary_data(root)
+            if data.empty:
+                st.error("No data extracted from the XML file.")
+                return
+            st.session_state.data = data
+            st.success("Data successfully extracted and loaded.")
+        except Exception as e:
+            st.error(f"Error loading XML file: {e}")
+            return
+        
      # Load the XML file for Provenir_id and Unique_id
      file = './1_Account_035_Result.xml'
      root = load_xml(file)
@@ -193,43 +208,58 @@ def analyze_page():
      st.image("logo.png", width=200) #logo Arrangment
      st.markdown('<div class="navbar">', unsafe_allow_html=True)
     # Navbar Buttons
+     if "page_history" not in st.session_state:
+        st.session_state.page_history = []
+
+    # Navbar Buttons
      navbar = st.container()
      with navbar:
         col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(10)
 
         with col1:
             if st.button("Request"):
+               st.session_state.page_history.append(st.session_state.page)
                st.session_state.page = "Request"        
         with col2:
             if st.button("Response"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Response"
 
         with col3:
             if st.button("Demograph"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Demograph"
         with col4:
             if st.button("Analyze"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "analyze"
         with col5:
             if st.button("VeriCheck"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "VeriCheck"
         with col6:
             if st.button("AML"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "AML"
         with col7:
             if st.button("Fraud"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Fraud"
         with col8:
             if st.button("Raw"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Raw"
         with col9:
             if st.button("Aggregated"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Aggregated"
         with col10:
             if st.button("Summary"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Summary"
 
      st.markdown('</div>', unsafe_allow_html=True)
+     
      
      st.markdown(
         """
@@ -313,19 +343,6 @@ def analyze_page():
      st.markdown(
     """
     <style>
-        .stButton > button {
-            float: right;      
-            margin-top: -10%;
-        }
-        .stButton {
-          display: flex;
-          flex-direction: column;  /* Arrange buttons vertically */
-          align-items: flex-end;   /* Align them to the right */
-        }
-
-        .stButton > button {
-          margin-bottom: 10px;    /* Add space between buttons */
-        }
         .st-emotion-cache-1db838k {
            width: 258px;
            position: relative;
@@ -349,7 +366,6 @@ def analyze_page():
      graph_type = st.selectbox("Select a graph type to display:", ["Line Graph", "Bar Graph", "Pie Chart"])
 
      chart_placeholder = st.empty()
-
      with chart_placeholder.container():
           if graph_type == "Line Graph":
             # Add selectbox for Y-axis variable
@@ -394,8 +410,9 @@ def analyze_page():
             pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Status")
             st.plotly_chart(pie_fig)
 
-
-
-# Load and extract data from the uploaded XML file
-xml_file_path = './1_Account_035_Result.xml'  # Path to your uploaded XML file
-load_and_extract_data(xml_file_path)
+ # Back button   
+     if st.button("Back"):
+         if len(st.session_state.page_history) > 0:
+            st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
+         else:
+            st.error("No previous page to go back to.")

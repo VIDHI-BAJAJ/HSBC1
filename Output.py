@@ -304,7 +304,7 @@ def display_output():
 
         with col1:
             if st.button("Equifax"):
-                st.session_state.page = "data"  # Navigate to Equifax page
+                st.session_state.page = "equifax"  # Navigate to Equifax page
                 st.rerun()
         
         with col2:

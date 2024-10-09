@@ -238,6 +238,10 @@ def raw_page():
 
      st.image("logo.png", width=200) #logo Arrangment
      st.markdown('<div class="navbar">', unsafe_allow_html=True)
+     
+     if "page_history" not in st.session_state:
+        st.session_state.page_history = []
+
     # Navbar Buttons
      navbar = st.container()
      with navbar:
@@ -245,34 +249,44 @@ def raw_page():
 
         with col1:
             if st.button("Request"):
+               st.session_state.page_history.append(st.session_state.page)
                st.session_state.page = "Request"        
         with col2:
             if st.button("Response"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Response"
 
         with col3:
             if st.button("Demograph"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Demograph"
         with col4:
             if st.button("Analyze"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "analyze"
         with col5:
             if st.button("VeriCheck"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "VeriCheck"
         with col6:
             if st.button("AML"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "AML"
         with col7:
             if st.button("Fraud"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Fraud"
         with col8:
             if st.button("Raw"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Raw"
         with col9:
             if st.button("Aggregated"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Aggregated"
         with col10:
             if st.button("Summary"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Summary"
 
      st.markdown('</div>', unsafe_allow_html=True)
@@ -352,4 +366,10 @@ def raw_page():
         st.table(raw_df)  # Display the raw data in a table format
      else:
         st.write("No Raw Data Found.")
-
+        
+     # Back button   
+     if st.button("Back"):
+        if len(st.session_state.page_history) > 0:
+            st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
+        else:
+            st.error("No previous page to go back to.")

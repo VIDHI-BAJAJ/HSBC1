@@ -109,7 +109,7 @@ def summary_page():
     padding: 0.25rem 0.75rem;
     border-radius: 0.1rem;
     /* min-height: 1.5rem; */
-    margin: 4px;
+    margin: 20px;
     line-height: 1.3;
     color: black;
     width: 110px;
@@ -197,40 +197,54 @@ def summary_page():
      st.image("logo.png", width=200) #logo Arrangment
      st.markdown('<div class="navbar">', unsafe_allow_html=True)
     # Navbar Buttons
+     if "page_history" not in st.session_state:
+        st.session_state.page_history = []
+
+    # Navbar Buttons
      navbar = st.container()
      with navbar:
         col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(10)
 
         with col1:
             if st.button("Request"):
+               st.session_state.page_history.append(st.session_state.page)
                st.session_state.page = "Request"        
         with col2:
             if st.button("Response"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Response"
 
         with col3:
             if st.button("Demograph"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Demograph"
         with col4:
             if st.button("Analyze"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "analyze"
         with col5:
             if st.button("VeriCheck"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "VeriCheck"
         with col6:
             if st.button("AML"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "AML"
         with col7:
             if st.button("Fraud"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Fraud"
         with col8:
             if st.button("Raw"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Raw"
         with col9:
             if st.button("Aggregated"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Aggregated"
         with col10:
             if st.button("Summary"):
+                st.session_state.page_history.append(st.session_state.page)
                 st.session_state.page = "Summary"
 
      st.markdown('</div>', unsafe_allow_html=True)
@@ -298,4 +312,10 @@ def summary_page():
     # Call the display function to show the summary
      display_summary_info(aggregated_data)
      
+      # Back button   
+     if st.button("Back"):
+         if len(st.session_state.page_history) > 0:
+            st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
+         else:
+            st.error("No previous page to go back to.")
      
