@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from lxml import etree
-import io
-
 
 # Load the XML file
 def load_xml(file):
@@ -14,6 +12,18 @@ def load_xml(file):
     except Exception as e:
         st.error(f"Error loading XML file: {e}")
         return None
+ 
+
+
+# Extract Provenir ID and Unique ID from XML file
+def extract_ids_from_xml(root):
+    header_segment = root.find(".//HeaderSegment")
+    if header_segment is not None:
+        provenir_id = header_segment.get("ProvenirID", "N/A")
+        unique_id = header_segment.get("UniqueID", "N/A")
+        return provenir_id, unique_id
+
+    return "N/A", "N/A"
 
 # #Extracting Of Raw And Aggregated data from Xml file
 def extract_data_for_account_lxml(element):
@@ -92,99 +102,25 @@ def extract_data_for_account_lxml(element):
 
     return raw_data, aggregated_data
 
-def display_data(aggregated_data):
-    current_category = None
-    for entry in aggregated_data:
-        category = entry["Category"]
-        
-        # Only print the category header if it's different from the last printed category
-        if category != current_category:
-            if current_category is not None:
-                print()  # Add a blank line before the next category
-            print(category)  # Print category header
-            current_category = category
-            
-        # Print data entries with specific formatting
-        print(f"{entry['Name']}\t{entry['Value']}\t{entry['Description']}")  # Print data entries
 
-# Example call
-# Assuming 'element' is your parsed XML data
-# raw_data, aggregated_data = extract_data_for_account_lxml(element)
-# display_data(aggregated_data)  # Call this to see the formatted output
-
-# Extract Provenir ID and Unique ID from XML file
-def extract_ids_from_xml(root):
-    header_segment = root.find(".//HeaderSegment")
-    if header_segment is not None:
-        provenir_id = header_segment.get("ProvenirID", "N/A")
-        unique_id = header_segment.get("UniqueID", "N/A")
-        return provenir_id, unique_id
-
-    return "N/A", "N/A"
-
-# def extract_psummary_data(root):
-#     psummary_data = []
-
-#     for psummary in root.xpath(".//PSUMMARY"):
-#         creditor_name = psummary.findtext("CreditorName", default="N/A")
-#         first_reported_limit_amt = int(psummary.findtext("FirstReportedLimitAmt", default=0))
-#         current_limit = int(psummary.findtext("CurrentLimit", default=0))
-#         account_status = psummary.findtext("AccountStatus", default="N/A")
-#         credit_card_type = psummary.findtext("CreditCardType", default="N/A")
-
-#         psummary_data.append({
-#             'CreditorName': creditor_name,
-#             'FirstReportedLimitAmt': first_reported_limit_amt,
-#             'CurrentLimit': current_limit,
-#             'AccountStatus': account_status,
-#             'CreditCardType': credit_card_type  
-#         })
-
-#     return pd.DataFrame(psummary_data)
-
-# def analyze_page():
-#     st.subheader("Analysis Page")
-
-#     # Check if data is available in session state
-#     if 'data' not in st.session_state or st.session_state.data.empty:
-#         st.error("No data available to plot. Please check the XML file.")
-#         return
-
-#     data = st.session_state.data
-#     graph_type = st.selectbox("Select a graph type to display:", ["Line Graph", "Bar Graph", "Pie Chart"])
-    
-#     chart_placeholder = st.empty()
-
-#     with chart_placeholder.container():
-#         if graph_type == "Line Graph":
-#             st.subheader("Line Graph of FirstReportedLimitAmt by Creditor Name")
-#             line_fig = px.line(data, x='CreditorName', y='FirstReportedLimitAmt', title="First Reported Limit Amount by Creditor Name")
-#             st.plotly_chart(line_fig)
-
-#         elif graph_type == "Bar Graph":
-#             st.subheader("Bar Graph of CurrentLimit by Creditor Name")
-#             bar_fig = px.bar(data, x='CreditorName', y='CurrentLimit', title="Current Limit by Creditor Name")
-#             st.plotly_chart(bar_fig)
-
-#         elif graph_type == "Pie Chart":
-#             st.subheader("Pie Chart of Account Status (Open vs Closed)")
-#             filtered_data = data[data['AccountStatus'].isin(['Open', 'Closed'])]
-#             if filtered_data.empty:
-#                 st.error("No data available for Open or Closed accounts.")
-#                 return
-
-#             pie_data = filtered_data['AccountStatus'].value_counts().reset_index()
-#             pie_data.columns = ['AccountStatus', 'Count']
-#             pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses")
-#             st.plotly_chart(pie_fig)
-
-
-# Main function
-def main1():
-    
- #Styling
-    st.markdown(""" 
+# Function to create analysis page
+def raw_page():
+    #Styling
+     st.markdown(""" 
         <style>
+            .st-emotion-cache-13ln4jf {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 4rem 1rem 10rem; !important;
+            }
+            .dataframe {
+                margin-right: 100px;
+                margin-left: 100px;
+            }
+            .css-1lcbmhc {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
         /* Style for the Provenir ID and Reference# */
         .top-info {
             position: absolute; 
@@ -280,32 +216,31 @@ def main1():
 
         </style>
     """, unsafe_allow_html=True)
+     
+     # Load the XML file for Provenir_id and Unique_id
+     file = './1_Account_035_Result.xml'
+     root = load_xml(file)
 
-    # Load the XML file for Provenir_id and Unique_id
-    file = './1_Account_035_Result.xml'
-    root = load_xml(file)
-
-    if root is None:
+     if root is None:
         st.error("Failed to load XML file.")
         return
 
   
-    provenir_id, unique_id = extract_ids_from_xml(root)
+     provenir_id, unique_id = extract_ids_from_xml(root)
 
 
-    st.markdown(f"""
+     st.markdown(f"""
         <div class='top-info'>
         <b>Provenir ID:</b> {provenir_id}<br>
         <b>Unique ID:</b> {unique_id}
         </div>
     """, unsafe_allow_html=True)
 
-    st.image("logo.png", width=200) #logo Arrangment
-    
-    st.markdown('<div class="navbar">', unsafe_allow_html=True)
+     st.image("logo.png", width=200) #logo Arrangment
+     st.markdown('<div class="navbar">', unsafe_allow_html=True)
     # Navbar Buttons
-    navbar = st.container()
-    with navbar:
+     navbar = st.container()
+     with navbar:
         col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(10)
 
         with col1:
@@ -340,10 +275,9 @@ def main1():
             if st.button("Summary"):
                 st.session_state.page = "Summary"
 
-    st.markdown('</div>', unsafe_allow_html=True)
-                
-#Styling
-    st.markdown(
+     st.markdown('</div>', unsafe_allow_html=True)
+     
+     st.markdown(
         """
         <style>
          .reportview-container {
@@ -358,11 +292,6 @@ def main1():
                 align-items: center;
                 justify-content: center;
             }
-            .dataframe {
-                margin-right: 500px;
-                margin-left:500px;
-            }
-       
         .st-emotion-cache-13ln4jf {
             max-width: 100% !important;  
             width: 100% !important;      
@@ -394,8 +323,8 @@ def main1():
         unsafe_allow_html=True
     )
 
-#Arrangment of the information on the page
-    st.markdown(
+     #Arrangment of the information on the page
+     st.markdown(
         """
         <div class="reportview-container">
            <div class="logo-container">
@@ -405,22 +334,22 @@ def main1():
         unsafe_allow_html=True
     )
 
-    if 'page' not in st.session_state:
-        st.session_state.page = "search"
-    if 'account_number' not in st.session_state:
-        st.session_state.account_number = ""
-         
+     st.title("Raw Data Table")
 
-    else:
-        st.title("Aggregated Data")
-  # Extract raw data using the existing function
-        raw_data, aggregated_data = extract_data_for_account_lxml(root)
-         # Convert raw data to a DataFrame for display
-        agg_df = pd.DataFrame(aggregated_data)
-        if not agg_df.empty:
-            st.table(agg_df) # Display the raw data in a table format
-        else:
-            st.write("No Aggregated Data Found.")
+     file = './1_Account_035_Result.xml'
+     root = load_xml(file)
 
-if __name__ == "__main__":
-    main1()
+     if root is None:
+        st.error("Failed to load XML file.")
+        return
+
+    # Extract raw data using the existing function
+     raw_data, _ = extract_data_for_account_lxml(root)
+
+     if raw_data:
+        # Convert raw data to a DataFrame for display
+        raw_df = pd.DataFrame(raw_data)
+        st.table(raw_df)  # Display the raw data in a table format
+     else:
+        st.write("No Raw Data Found.")
+

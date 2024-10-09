@@ -1,5 +1,39 @@
 import streamlit as st
 import pandas as pd
+import requests
+from lxml import etree
+
+# # API request and save function
+# def fetch_and_save_response(application_id):
+#     api_url = "https://your-api-endpoint.com/getData"  # Replace with actual API URL
+
+#     # Construct the request payload
+#     request_payload = {
+#         "ApplicationID": application_id
+#     }
+
+#     # Send POST request to the API
+#     response = requests.post(api_url, json=request_payload)
+
+#     if response.status_code == 200:
+#         response_data = response.json()  # Parse the JSON response
+
+#         # Convert JSON to XML and save as xyz.xml
+#         root = etree.Element("Root")
+#         for key, value in response_data.items():
+#             child = etree.SubElement(root, key)
+#             child.text = str(value)
+
+#         # Save XML response to a file
+#         xml_file_name = "xyz.xml"
+#         with open(xml_file_name, "wb") as f:
+#             f.write(etree.tostring(root, pretty_print=True))
+
+#         st.session_state.xml_file_path = xml_file_name  # Save the file path in session state
+#         st.success(f"Response saved successfully as {xml_file_name}")
+#     else:
+#         st.error(f"Failed to fetch data. Status code: {response.status_code}")
+
 
 #main page
 def display_form():
@@ -148,7 +182,7 @@ def display_form():
         st.session_state.call_type = "Consumer"
 
    
-    with st.form(key="search_form"):
+    with st.form(key="submit_form1"):
         unique_id = st.text_input("Unique ID", value=st.session_state.unique_id)
         application_id = st.text_input("Application ID *", value=st.session_state.application_id)
         first_name = st.text_input("First Name", value=st.session_state.first_name)
@@ -204,123 +238,3 @@ def display_form():
 
         st.rerun()  
         
-# 2nd page
-def display_output():
-    st.image("logo.png", width=200) #logo Arrangment
-    
-#Arrangment of the information on the page
-    st.markdown(
-        """
-        <div class="reportview-container">
-           <div class="logo-container">
-        </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    if 'form_data' in st.session_state:
-        form_data = st.session_state.form_data
-
-        # Create three copies of form_data with different Credit Bureaus
-        credit_bureaus = [
-
-            '<a href="./Equifax.py" target="_blank">Equifax</a>',
-            '<a href="/pages/Experian.py" target="_blank">Experian</a>',
-            '<a href="./Illion.py" target="_blank">Illion</a>'
-        ]
-
-        # Generate rows with the same form data but different credit bureau links
-        data_rows = []
-        for bureau in credit_bureaus:
-            row_data = form_data.copy()  
-            row_data["Credit Bureaus"] = bureau 
-            data_rows.append(row_data)
-
-    #Generate output in Table format
-        data = pd.DataFrame(data_rows)
-
-    #Styling
-        st.markdown(
-            """
-            <style>
-             .st-emotion-cache-13ln4jf {
-                max-width: 100% !important;  
-                width: 100% !important;      
-                padding: 4rem 1rem 10rem; !important;
-            }
-            .stApp {
-                margin-left: 0rem;
-            }
-            .centered-title {
-                text-align: center;  
-                font-size: 40px;     
-                font-weight: bold;   
-                color: black;        
-            }
-            .reportview-container {
-                background-color: black;  
-                color: white;  
-                height: 10px;
-                width: 100%;
-                margin-bottom: 30px;
-            }
-            .logo-container {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .dataframe {
-                margin-right: 100px;
-                margin-left: 100px;
-            }
-            .css-1lcbmhc {
-                padding-left: 0 !important;  
-                padding-right: 0 !important; 
-            }
-            .back-button {
-                margin-left: 20%;  
-            }
-            .stButton {
-                margin-left: 110px;
-            }
-            .st-emotion-cache-1vt4y43 {
-                display: inline-flex;
-                -webkit-box-align: center;
-                align-items: center;
-                -webkit-box-pack: center;
-                justify-content: center;
-                font-weight: 400;
-                padding: 0.25rem 0.75rem;
-                min-height: 2.5rem;
-                margin: 0px;
-                line-height: 1.6;
-                color: black;
-                width: auto;
-                user-select: none;
-                border: 1px solid rgba(49, 51, 63, 0.2);
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # Render the data including links in a table
-        st.markdown(data.to_html(escape=False, index=False), unsafe_allow_html=True)
-
-     #Return Button help to go Back
-    if st.button("Return"):
-        if 'form_data' in st.session_state:
-            del st.session_state.form_data
-        st.session_state.page = "form"
-        
-        
-
-# Determine which page to show
-if 'page' not in st.session_state:
-    st.session_state.page = "form"
-
-if st.session_state.page == "form":
-    display_form()
-else:
-    display_output()

@@ -112,241 +112,6 @@ def display_data(aggregated_data):
 # raw_data, aggregated_data = extract_data_for_account_lxml(element)
 # display_data(aggregated_data)  # Call this to see the formatted output
 
-# Code Of the Raw Button    
-def raw_page():
-    st.title("Raw Data Table")
-
-    file = './1_Account_035_Result.xml'
-    root = load_xml(file)
-
-    if root is None:
-        st.error("Failed to load XML file.")
-        return
-
-    # Extract raw data using the existing function
-    raw_data, _ = extract_data_for_account_lxml(root)
-
-    if raw_data:
-        # Convert raw data to a DataFrame for display
-        raw_df = pd.DataFrame(raw_data)
-        st.table(raw_df)  # Display the raw data in a table format
-    else:
-        st.write("No Raw Data Found.")
-
-# Extract psummary data for analysis
-def extract_psummary_data(root):
-    psummary_data = []
-    
-    for psummary in root.xpath(".//PSUMMARY"):
-        creditor_name = psummary.findtext("CreditorName", default="N/A")
-        first_reported_limit_amt = int(psummary.findtext("FirstReportedLimitAmt", default=0))
-        current_limit = int(psummary.findtext("CurrentLimit", default=0))
-        account_status = psummary.findtext("AccountStatus", default="N/A")
-        credit_card_type = psummary.findtext("CreditCardType", default="N/A")
-        
-        psummary_data.append({
-            'CreditorName': creditor_name,
-            'FirstReportedLimitAmt': first_reported_limit_amt,
-            'CurrentLimit': current_limit,
-            'AccountStatus': account_status,
-            'CreditCardType': credit_card_type  
-        })
-        
-    return pd.DataFrame(psummary_data)
-
-#  Function to create analysis page
-def analyze_page():
-    st.subheader("Analysis Page")
-    
-    if 'data' not in st.session_state or st.session_state.data.empty:
-        st.error("No data available to plot. Please check the XML file.")
-        return
-
-    data = st.session_state.data
-    graph_type = st.selectbox("Select a graph type to display:", ["Line Graph", "Bar Graph", "Pie Chart"])
-    
-    chart_placeholder = st.empty()
-
-    with chart_placeholder.container():
-        if graph_type == "Line Graph":
-            st.subheader("Line Graph of FirstReportedLimitAmt by Creditor Name")
-            line_fig = px.line(data, x='CreditorName', y='FirstReportedLimitAmt', title="First Reported Limit Amount by Creditor Name")
-            st.plotly_chart(line_fig)
-
-        elif graph_type == "Bar Graph":
-            st.subheader("Bar Graph of CurrentLimit by Creditor Name")
-            bar_fig = px.bar(data, x='CreditorName', y='CurrentLimit', title="Current Limit by Creditor Name")
-            st.plotly_chart(bar_fig)
-
-        elif graph_type == "Pie Chart":
-            st.subheader("Pie Chart of Account Status (Open vs Closed)")
-            filtered_data = data[data['AccountStatus'].isin(['Open', 'Closed'])]
-            if filtered_data.empty:
-                st.error("No data available for Open or Closed accounts.")
-                return
-
-            pie_data = filtered_data['AccountStatus'].value_counts().reset_index()
-            pie_data.columns = ['AccountStatus', 'Count']
-            pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses")
-            st.plotly_chart(pie_fig)
-
-#Download the XML File of Request      
-def download_xml_button(xml_content, filename):
-    xml_bytes = io.BytesIO()
-    xml_bytes.write(xml_content.encode('utf-8'))
-    xml_bytes.seek(0)
-    st.download_button(
-        label=f"Download {filename}",
-        data=xml_bytes,
-        file_name=filename,
-        mime="application/xml"
-)
-#  Function to create request page
-def request_page():
-    if 'form_data' in st.session_state:
-        form_data = st.session_state.form_data
-
-        # Create three copies of form_data with different Credit Bureaus
-        credit_bureaus = [
-            '<a href="./Equifax.py" target="_blank">Equifax</a>',
-            '<a href="/pages/Experian.py" target="_blank">Experian</a>',
-            '<a href="./Illion.py" target="_blank">Illion</a>'
-        ]
-
-        # Generate rows with the same form data but different credit bureau links
-        data_rows = []
-        for bureau in credit_bureaus:
-            row_data = form_data.copy()
-            row_data["Credit Bureaus"] = bureau
-            data_rows.append(row_data)
-
-        # Generate output in Table format
-        data = pd.DataFrame(data_rows)
-
-        # Styling
-        st.markdown(
-            """
-            <style>
-            .st-emotion-cache-13ln4jf {
-                max-width: 100% !important;
-                width: 100% !important;
-                padding: 4rem 1rem 10rem; !important;
-            }
-            .dataframe {
-                margin-right: 100px;
-                margin-left: 100px;
-            }
-            .css-1lcbmhc {
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # Render the data including links in a table
-        st.markdown(data.to_html(escape=False, index=False), unsafe_allow_html=True)
-        
-        col1, col2 = st.columns([1, 1])
-        # Add a download button for the data
-        with col1:
-           if st.button("Return"):
-            if 'form_data' in st.session_state:
-             del st.session_state.form_data
-        st.session_state.page = "form"
-
-    # Return Button to go Back
-    with col2:
-           csv_data = data.to_csv(index=False).encode('utf-8')
-           st.download_button(
-            label="Download",
-            data=csv_data,
-            file_name='credit_bureau_data.csv',
-            mime='text/csv',
-        )
-  
-
-#  Function to create response page
-def  response_page():
-       # File path to the uploaded XML file
-    file_path = './1_Account_035_Result.xml'
-
-    # Read and display the XML content
-    with open(file_path, 'r') as file:
-        xml_content = file.read()
-
-    # Create two columns for the header and download button side by side
-    col1, col2 = st.columns([3, 1])
-
-    with col1:
-        st.subheader("XML File Content")
-    
-    with col2:
-        st.download_button(
-            label="Download",
-            data=xml_content,
-            file_name="response.xml",
-            mime="application/xml"
-        )
-
-    # Display the XML content in a code block below
-    st.code(xml_content, language='xml')
-
-#  Function to create demograph page
-def  demograph_page():
-    st.write("demograph")
-    
-#  Function to create vericheck page
-def  vericheck_page():
-    st.write("vericheck")
-
-#  Function to create aml page
-def aml_page():
-    st.write("aml")
-
-# Function to create fraud page
-def fraud_page():
-    st.write("fraud")
-
-
-# Function to create summary page including both raw and aggregated data
-def summary_page():
-    st.title("Summary Page")
-
-    # Load XML file
-    file_path = './1_Account_035_Result.xml'
-    root = load_xml(file_path)
-
-    if root is None:
-        return
-
-    # Extract raw and aggregated data
-    raw_data, aggregated_data = extract_data_for_account_lxml(root)
-
-    # Search bar for the name from XML tags
-    search_name = st.text_input("Enter a name from the XML tags:", "")
-
-    if search_name:
-        # Search for the name in raw data
-        raw_matching_data = next((item for item in raw_data if item["Name"] == search_name), None)
-        
-        # Search for the name in aggregated data
-        aggregated_matching_data = next((item for item in aggregated_data if item[1] == search_name), None)
-
-        # Display raw data if found
-        if raw_matching_data:
-            raw_paragraph = f"The raw data for {raw_matching_data['Name']} is {raw_matching_data['Value']}."
-            st.write(raw_paragraph)
-        
-        # Display aggregated data if found
-        elif aggregated_matching_data:
-            category, name, value, description = aggregated_matching_data
-            aggregated_paragraph = f"The data for {name} under the category {category} is as follows: {description}. The value associated with {name} is {value}."
-            st.write(aggregated_paragraph)
-        else:
-            st.error(f"No data found for the name: {search_name}")
-
 # Extract Provenir ID and Unique ID from XML file
 def extract_ids_from_xml(root):
     header_segment = root.find(".//HeaderSegment")
@@ -357,8 +122,65 @@ def extract_ids_from_xml(root):
 
     return "N/A", "N/A"
 
+# def extract_psummary_data(root):
+#     psummary_data = []
+
+#     for psummary in root.xpath(".//PSUMMARY"):
+#         creditor_name = psummary.findtext("CreditorName", default="N/A")
+#         first_reported_limit_amt = int(psummary.findtext("FirstReportedLimitAmt", default=0))
+#         current_limit = int(psummary.findtext("CurrentLimit", default=0))
+#         account_status = psummary.findtext("AccountStatus", default="N/A")
+#         credit_card_type = psummary.findtext("CreditCardType", default="N/A")
+
+#         psummary_data.append({
+#             'CreditorName': creditor_name,
+#             'FirstReportedLimitAmt': first_reported_limit_amt,
+#             'CurrentLimit': current_limit,
+#             'AccountStatus': account_status,
+#             'CreditCardType': credit_card_type  
+#         })
+
+#     return pd.DataFrame(psummary_data)
+
+# def analyze_page():
+#     st.subheader("Analysis Page")
+
+#     # Check if data is available in session state
+#     if 'data' not in st.session_state or st.session_state.data.empty:
+#         st.error("No data available to plot. Please check the XML file.")
+#         return
+
+#     data = st.session_state.data
+#     graph_type = st.selectbox("Select a graph type to display:", ["Line Graph", "Bar Graph", "Pie Chart"])
+    
+#     chart_placeholder = st.empty()
+
+#     with chart_placeholder.container():
+#         if graph_type == "Line Graph":
+#             st.subheader("Line Graph of FirstReportedLimitAmt by Creditor Name")
+#             line_fig = px.line(data, x='CreditorName', y='FirstReportedLimitAmt', title="First Reported Limit Amount by Creditor Name")
+#             st.plotly_chart(line_fig)
+
+#         elif graph_type == "Bar Graph":
+#             st.subheader("Bar Graph of CurrentLimit by Creditor Name")
+#             bar_fig = px.bar(data, x='CreditorName', y='CurrentLimit', title="Current Limit by Creditor Name")
+#             st.plotly_chart(bar_fig)
+
+#         elif graph_type == "Pie Chart":
+#             st.subheader("Pie Chart of Account Status (Open vs Closed)")
+#             filtered_data = data[data['AccountStatus'].isin(['Open', 'Closed'])]
+#             if filtered_data.empty:
+#                 st.error("No data available for Open or Closed accounts.")
+#                 return
+
+#             pie_data = filtered_data['AccountStatus'].value_counts().reset_index()
+#             pie_data.columns = ['AccountStatus', 'Count']
+#             pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses")
+#             st.plotly_chart(pie_fig)
+
+
 # Main function
-def main():
+def main1():
     
  #Styling
     st.markdown(""" 
@@ -587,33 +409,8 @@ def main():
         st.session_state.page = "search"
     if 'account_number' not in st.session_state:
         st.session_state.account_number = ""
+         
 
-    file = './1_Account_035_Result.xml'
-    root = load_xml(file)
-
-    if root is not None and 'data' not in st.session_state:
-        st.session_state.data = extract_psummary_data(root)
-
-    if st.session_state.page == "analyze":
-        analyze_page()
-    elif st.session_state.page == "Raw":
-       raw_page()
-    elif st.session_state.page == "Response":
-       response_page()
-    elif st.session_state.page == "Raw":
-       raw_page()
-    elif st.session_state.page == "Request":
-       request_page()
-    elif st.session_state.page == "Demograph":
-        demograph_page()
-    elif st.session_state.page == "VeriCheck":
-        vericheck_page()
-    elif st.session_state.page == "AML":
-        aml_page()
-    elif st.session_state.page == "Fraud":
-        fraud_page()
-    elif st.session_state.page == "Summary":
-        summary_page()  
     else:
         st.title("Aggregated Data")
   # Extract raw data using the existing function
@@ -626,4 +423,4 @@ def main():
             st.write("No Aggregated Data Found.")
 
 if __name__ == "__main__":
-    main()
+    main1()
