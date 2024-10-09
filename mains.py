@@ -37,27 +37,10 @@ from lxml import etree
 
 #main page
 def display_form():
-# Center the logo using st.image and apply CSS to center the image
-    st.markdown(
-    """
-    <style>
-    .container {
-        display: flex;
-        justify-content: center;
-    }
-    </style>
-    <div class="container">
-    """,
-    unsafe_allow_html=True
-)
 
 # Display the image using st.image
     st.image("logo.png", width=250)
 
-# Close the div tag
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    
     st.markdown('<h1 class="centered-title">Search Criteria</h1>', unsafe_allow_html=True) #Search Criterian
 #styling 
     st.markdown(

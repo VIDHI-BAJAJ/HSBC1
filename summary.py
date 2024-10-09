@@ -61,7 +61,7 @@ def display_summary_info(aggregated_data):
     </div>
     """, unsafe_allow_html=True)
         
-# Function to create analysis page
+# Function to create Summary page
 def summary_page():
     #Styling
      st.markdown(""" 

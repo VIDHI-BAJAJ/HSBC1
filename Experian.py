@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from lxml import etree
-import io
 
 
 # Load the XML file
@@ -119,7 +118,7 @@ def extract_ids_from_xml(root):
     return "N/A", "N/A"
 
 
-# Main function
+# Main function Experian
 def experian_page():
     
  #Styling
@@ -360,25 +359,17 @@ def experian_page():
         unsafe_allow_html=True
     )
 
-    if 'page' not in st.session_state:
-        st.session_state.page = "search"
-    if 'account_number' not in st.session_state:
-        st.session_state.account_number = ""
-         
+    st.title("Aggregated Data")
+    # Extract raw data using the existing function
+    raw_data, aggregated_data = extract_data_for_account_lxml(root)
 
-    else:
-        st.title("Aggregated Data")
-  # Extract raw data using the existing function
-        raw_data, aggregated_data = extract_data_for_account_lxml(root)
-         # Convert raw data to a DataFrame for display
-        agg_df = pd.DataFrame(aggregated_data)
-        if not agg_df.empty:
-            st.table(agg_df) # Display the raw data in a table format
-        else:
-            st.write("No Aggregated Data Found.")
+    # Convert raw data to a DataFrame for display
+    agg_df = pd.DataFrame(aggregated_data)
+    if not agg_df.empty:
+     st.table(agg_df)  # Display the raw data in a table format
         
-    # Back button   
-        if st.button("Back"):
+         # Back button   
+    if st.button("Back"):
          if len(st.session_state.page_history) > 0:
             st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
          else:

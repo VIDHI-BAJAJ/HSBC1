@@ -55,7 +55,7 @@ def extract_ids_from_xml(root):
 
     return "N/A", "N/A"
 
-# Function to create analysis page
+# Function to create Response page
 def response_page():
     #Styling
      st.markdown(""" 

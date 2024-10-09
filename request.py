@@ -31,7 +31,7 @@ def go_back():
         st.session_state.page = "form"  # Default to the form page if no history exists
 
 
-# Function to create analysis page
+# Function to create Request page
 def request_page():
     #Styling
      st.markdown(""" 
@@ -295,20 +295,10 @@ def request_page():
      if 'form_data' in st.session_state:
         form_data = st.session_state.form_data
 
-        # Create a DataFrame to hold the form data (with three rows for each bureau)
-        bureau_links = [
-            {'name': 'Equifax', 'link': '/pages/Equifax.py'},
-            {'name': 'Experian', 'link': '/pages/Experian.py'},
-            {'name': 'Illion', 'link': './Illion.py'}
-        ]
+    # Create a list to hold all rows of form data (3 rows for each bureau)
+        data_rows = [form_data.copy() for _ in range(3)]  # Create 3 copies of form_data
 
-        # Create a list to hold all rows of form data
-        data_rows = []
-        for bureau in bureau_links:
-            row_data = form_data.copy()  # Copy form data for each bureau
-            data_rows.append(row_data)
-
-        # Generate output in Table format without the "Credit Bureaus" column
+    # Generate output in Table format without the "Credit Bureaus" column
         data = pd.DataFrame(data_rows)
 
         # Display the table

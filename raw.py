@@ -103,7 +103,7 @@ def extract_data_for_account_lxml(element):
     return raw_data, aggregated_data
 
 
-# Function to create analysis page
+# Function to create Raw page
 def raw_page():
     #Styling
      st.markdown(""" 

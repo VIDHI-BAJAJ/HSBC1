@@ -46,22 +46,6 @@ def extract_psummary_data(root):
 
     return pd.DataFrame(psummary_data)
 
-# # Function to load and extract data from the uploaded XML file
-# def load_and_extract_data(xml_file_path):
-#     try:
-#         tree = etree.parse(xml_file_path)
-#         root = tree.getroot()
-#         data = extract_psummary_data(root)
-#         if data.empty:
-#             st.error("No data extracted from the XML file.")
-#             return
-#         st.session_state.data = data
-#         st.success("Data successfully extracted and loaded.")
-#     except Exception as e:
-#         st.error(f"Error loading XML file: {e}")
-
-
-
 # Function to create analysis page
 def analyze_page():
     #Styling

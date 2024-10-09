@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from lxml import etree
-import io
+
 
 
 # Load the XML file
@@ -107,10 +107,6 @@ def display_data(aggregated_data):
         # Print data entries with specific formatting
         print(f"{entry['Name']}\t{entry['Value']}\t{entry['Description']}")  # Print data entries
 
-# Example call
-# Assuming 'element' is your parsed XML data
-# raw_data, aggregated_data = extract_data_for_account_lxml(element)
-# display_data(aggregated_data)  # Call this to see the formatted output
 
 # Extract Provenir ID and Unique ID from XML file
 def extract_ids_from_xml(root):
@@ -122,64 +118,7 @@ def extract_ids_from_xml(root):
 
     return "N/A", "N/A"
 
-# def extract_psummary_data(root):
-#     psummary_data = []
-
-#     for psummary in root.xpath(".//PSUMMARY"):
-#         creditor_name = psummary.findtext("CreditorName", default="N/A")
-#         first_reported_limit_amt = int(psummary.findtext("FirstReportedLimitAmt", default=0))
-#         current_limit = int(psummary.findtext("CurrentLimit", default=0))
-#         account_status = psummary.findtext("AccountStatus", default="N/A")
-#         credit_card_type = psummary.findtext("CreditCardType", default="N/A")
-
-#         psummary_data.append({
-#             'CreditorName': creditor_name,
-#             'FirstReportedLimitAmt': first_reported_limit_amt,
-#             'CurrentLimit': current_limit,
-#             'AccountStatus': account_status,
-#             'CreditCardType': credit_card_type  
-#         })
-
-#     return pd.DataFrame(psummary_data)
-
-# def analyze_page():
-#     st.subheader("Analysis Page")
-
-#     # Check if data is available in session state
-#     if 'data' not in st.session_state or st.session_state.data.empty:
-#         st.error("No data available to plot. Please check the XML file.")
-#         return
-
-#     data = st.session_state.data
-#     graph_type = st.selectbox("Select a graph type to display:", ["Line Graph", "Bar Graph", "Pie Chart"])
-    
-#     chart_placeholder = st.empty()
-
-#     with chart_placeholder.container():
-#         if graph_type == "Line Graph":
-#             st.subheader("Line Graph of FirstReportedLimitAmt by Creditor Name")
-#             line_fig = px.line(data, x='CreditorName', y='FirstReportedLimitAmt', title="First Reported Limit Amount by Creditor Name")
-#             st.plotly_chart(line_fig)
-
-#         elif graph_type == "Bar Graph":
-#             st.subheader("Bar Graph of CurrentLimit by Creditor Name")
-#             bar_fig = px.bar(data, x='CreditorName', y='CurrentLimit', title="Current Limit by Creditor Name")
-#             st.plotly_chart(bar_fig)
-
-#         elif graph_type == "Pie Chart":
-#             st.subheader("Pie Chart of Account Status (Open vs Closed)")
-#             filtered_data = data[data['AccountStatus'].isin(['Open', 'Closed'])]
-#             if filtered_data.empty:
-#                 st.error("No data available for Open or Closed accounts.")
-#                 return
-
-#             pie_data = filtered_data['AccountStatus'].value_counts().reset_index()
-#             pie_data.columns = ['AccountStatus', 'Count']
-#             pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Statuses")
-#             st.plotly_chart(pie_fig)
-
-
-# Main function
+# Main function Equifax
 def main1():
     
  #Styling
@@ -420,29 +359,18 @@ def main1():
         unsafe_allow_html=True
     )
 
-    if 'page' not in st.session_state:
-        st.session_state.page = "search"
-    if 'account_number' not in st.session_state:
-        st.session_state.account_number = ""
-         
+    st.title("Aggregated Data")
+    # Extract raw data using the existing function
+    raw_data, aggregated_data = extract_data_for_account_lxml(root)
 
-    else:
-        st.title("Aggregated Data")
-  # Extract raw data using the existing function
-        raw_data, aggregated_data = extract_data_for_account_lxml(root)
-         # Convert raw data to a DataFrame for display
-        agg_df = pd.DataFrame(aggregated_data)
-        if not agg_df.empty:
-            st.table(agg_df) # Display the raw data in a table format
-        else:
-            st.write("No Aggregated Data Found.")
-            
+    # Convert raw data to a DataFrame for display
+    agg_df = pd.DataFrame(aggregated_data)
+    if not agg_df.empty:
+     st.table(agg_df)  # Display the raw data in a table format
+        
          # Back button   
-        if st.button("Back"):
+    if st.button("Back"):
          if len(st.session_state.page_history) > 0:
             st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
          else:
             st.error("No previous page to go back to.")
-
-if __name__ == "__main__":
-    main1()
