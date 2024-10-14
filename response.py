@@ -3,47 +3,24 @@ import pandas as pd
 import plotly.express as px
 from lxml import etree
 
+
 # Load the XML file
-def load_xml(file):
+def load_xml(xml_file_path):
     try:
-        tree = etree.parse(file)
+        tree = etree.parse(xml_file_path)
         root = tree.getroot()
         return root
     except Exception as e:
         st.error(f"Error loading XML file: {e}")
         return None
     
-# Extract psummary data for analysis
-def extract_psummary_data(root):
-    psummary_data = []
-    
-    for psummary in root.xpath(".//PSUMMARY"):
-        creditor_name = psummary.findtext("CreditorName", default="N/A")
-        first_reported_limit_amt = int(psummary.findtext("FirstReportedLimitAmt", default=0))
-        current_limit = int(psummary.findtext("CurrentLimit", default=0))
-        account_status = psummary.findtext("AccountStatus", default="N/A")
-        credit_card_type = psummary.findtext("CreditCardType", default="N/A")
-        
-        psummary_data.append({
-            'CreditorName': creditor_name,
-            'FirstReportedLimitAmt': first_reported_limit_amt,
-            'CurrentLimit': current_limit,
-            'AccountStatus': account_status,
-            'CreditCardType': credit_card_type  
-        })
-        
-    return pd.DataFrame(psummary_data)
-
-# Function to load and extract data from the uploaded XML file
-def load_and_extract_data(xml_file_path):
-    try:
-        tree = etree.parse(xml_file_path)
-        root = tree.getroot()
-        data = extract_psummary_data(root)
-        st.session_state.data = data
-        st.success("Data successfully extracted and loaded.")
-    except Exception as e:
-        st.error(f"Error loading XML file: {e}")
+# Function to go back to the previous page
+def go_back():
+    if 'page_history' in st.session_state and st.session_state.page_history:
+        st.session_state.page = st.session_state.page_history.pop()  # Go to the last visited page
+    else:
+        st.session_state.page = "form"  # Default to the form page if no history exists
+ 
 
 # Extract Provenir ID and Unique ID from XML file
 def extract_ids_from_xml(root):
@@ -55,6 +32,66 @@ def extract_ids_from_xml(root):
 
     return "N/A", "N/A"
 
+# Extract enquiry data and return items and requests
+
+def extract_enquiry_data(root):
+    items = [
+        "Enquiry Reference Number",
+        "Member Id",
+        "Purpose",
+        "Product",
+        "Search Type",
+        "Application Type",
+        "Account Type",
+        "Amount",
+        "Terms",
+        "ClientReference1",
+        "ClientReference2",
+        "Credit Purpose",
+        "ConsUIQVersion",
+        "ConsUOFVersion"
+    ]
+
+    requests = []
+    for enquiry in root.xpath('.//PENQUIRY'):
+        requests.append([
+            enquiry.xpath('ClientEnquiryRefNumber/text()')[0] if enquiry.xpath('ClientEnquiryRefNumber/text()') else " ",
+            enquiry.xpath('EnqBureauMemberId/text()')[0] if enquiry.xpath('EnqBureauMemberId/text()') else " ",
+            enquiry.xpath('EnqPurpose/text()')[0] if enquiry.xpath('EnqPurpose/text()') else " ",
+            enquiry.xpath('EnqProduct/text()')[0] if enquiry.xpath('EnqProduct/text()') else " ",
+            enquiry.xpath('Product/text()')[0] if enquiry.xpath('Product/text()') else " ",
+            enquiry.xpath('EnquiryApplicationType/text()')[0] if enquiry.xpath('EnquiryApplicationType/text()') else " ",
+            enquiry.xpath('EnquiryAccountType/text()')[0] if enquiry.xpath('EnquiryAccountType/text()') else " ",
+            enquiry.xpath('EnquiryAmount/text()')[0] if enquiry.xpath('EnquiryAmount/text()') else " ",
+            enquiry.xpath('EnquiryTerms/text()')[0] if enquiry.xpath('EnquiryTerms/text()') else " ",
+            enquiry.xpath('ClientReference1/text()')[0] if enquiry.xpath('ClientReference1/text()') else " ",
+            enquiry.xpath('ClientReference2/text()')[0] if enquiry.xpath('ClientReference2/text()') else " ",
+            enquiry.xpath('EnquiryCreditPurpose/text()')[0] if enquiry.xpath('EnquiryCreditPurpose/text()') else " ",
+            enquiry.xpath('.//ENQHEADER/ConsUIQVersion/text()')[0] if enquiry.xpath('.//ENQHEADER/ConsUIQVersion/text()') else " ",
+            enquiry.xpath('.//ENQHEADER/ConsUOFVersion/text()')[0] if enquiry.xpath('.//ENQHEADER/ConsUOFVersion/text()') else " ",
+            ])
+    
+    return items, requests
+
+
+def extract_summary_data(root):
+    item = [
+        "systemMessageCode",
+        "systemMessageText",
+        "systemMessageDescription",
+    ]
+    
+    response = []
+    for enquiry in root.xpath('.//SYSMESSG'):
+        response.append([
+            enquiry.xpath('systemMessageCode/text()')[0] if enquiry.xpath('systemMessageCode/text()') else " ",
+            enquiry.xpath('systemMessageText/text()')[0] if enquiry.xpath('systemMessageText/text()') else " ",
+            enquiry.xpath('systemMessageDescription/text()')[0] if enquiry.xpath('systemMessageDescription/text()') else " ",
+        ])
+
+    return item , response, 
+    
+    
 # Function to create Response page
 def response_page():
     #Styling
@@ -168,9 +205,11 @@ def response_page():
 
         </style>
     """, unsafe_allow_html=True)
+     
      # Load the XML file for Provenir_id and Unique_id
-     file = './1_Account_035_Result.xml'
-     root = load_xml(file)
+     # xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
+     xml_file_path = "./1_Account_035_Result.xml" 
+     root = load_xml(xml_file_path)
 
      if root is None:
         st.error("Failed to load XML file.")
@@ -271,18 +310,49 @@ def response_page():
            margin-bottom: 1rem;
             color: rgb(49, 51, 63);
             border-collapse: collapse;
-            border: 1px solid rgba(49, 51, 63, 0.1);
+            border: 1px solid rgba(49, 51, 63);
             margin-left: 180px; !important;
         }
        .st-emotion-cache-a51556 {
-           border-bottom: 1px solid rgba(49, 51, 63, 0.1);
-           border-right: 1px solid rgba(49, 51, 63, 0.1);
+           border-bottom: 1px solid rgba(49, 51, 63);
+           border-right: 1px solid rgba(49, 51, 63);
            vertical-align: middle;
            padding: 0.25rem 0.375rem;
            font-weight: 400;
-           color: rgba(49, 51, 63, 0.6);
-           display: none;
+           color: rgba(49, 51, 63);
         }
+        .st-emotion-cache-a51556 {
+    border-bottom: 1px solid rgb(49 ,51 ,63);
+    border-right: 1px solid rgb(49 ,51 ,63);
+    vertical-align: middle;
+    padding: 0.25rem 0.375rem;
+    font-weight: 400;
+    color: rgba(49, 51, 63);
+    background-color: lightgray;
+}
+    .st-emotion-cache-gdzsw5 {
+       border-bottom: 1px solid rgb(49 ,51 ,63);
+       border-right: 1px solid rgb(49 ,51 ,63);
+       vertical-align: middle;
+       padding: 0.25rem 0.375rem;
+    font-weight: 400;
+}
+.st-emotion-cache-gdzsw5 {
+    border-bottom: 1px solid rgba(49, 51, 63);
+    border-right: 1px solid rgb(49 ,51 ,63);
+    vertical-align: middle;
+    padding: 0.25rem 0.375rem;
+    font-weight: 400;
+}
+ .st-emotion-cache-165ax5l {
+             width: 50% !important;
+             margin-bottom: 1rem;
+             color: rgb(49, 51, 63);
+             border-collapse: collapse;
+             border: 1px solid rgb(49 ,51 ,63);
+             margin-left: 50px;
+             margin-top: 20px;
+            }
         </style>
         """,
         unsafe_allow_html=True
@@ -299,34 +369,104 @@ def response_page():
         unsafe_allow_html=True
     )
 
-     file_path = './1_Account_035_Result.xml'
+ # Extract enquiry data
+     items, requests = extract_enquiry_data(root)
 
-    # Read and display the XML content
-     with open(file_path, 'r') as file:
-        xml_content = file.read()
-
-    # Create two columns for the header and download button side by side
-     col1, col2 = st.columns([3, 1])
-
-     with col1:
-        st.subheader("XML File Content")
+    # Create DataFrame for the table
+     if requests:
+      request_data = requests[0]  # Get the first request data only
     
+    # Create a DataFrame with items as index and corresponding values
+     data = {
+        'Item': items,
+        'Request': request_data
+    }
+    
+   
+    # Create DataFrame for the table
+     if requests:
+      request_data = requests[0]  # Get the first request data only
+    
+    # Create a DataFrame with items as index and corresponding values
+     data = {
+        'Item': items,
+        'Request': request_data
+    }
+    
+    # Convert to DataFrame
+     requests_df = pd.DataFrame(data)
+
+    # Display the table
+     st.table(requests_df)
+     
+     item, response = extract_summary_data(root)
+
+    # Create DataFrame for the table
+     if response:
+      response_data = response[0]  # Get the first request data only
+    
+    # Create a DataFrame with items as index and corresponding values
+     data = {
+        'Item': item,
+        'Response': response_data
+    }
+    
+
+    # Convert to DataFrame
+     response_df = pd.DataFrame(data)
+
+    # Display the table
+     st.table(response_df)
+
+    # Optionally, create a DataFrame for download
+     if requests:
+        csv_data = requests_df.to_csv(index=False)
+        
+   # Adding custom CSS styling for buttons
+     st.markdown("""
+    <style>
+        /* Style for the Back button */
+        .stButton button {
+            margin-left: 50px;  /* Adjust this value as needed */
+            background-color: rgb(240, 240, 240);
+            border: 1.5px solid rgb(0, 0, 0);
+            padding: 0.25rem 0.75rem;
+            font-weight: 400;
+            color: black;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        /* Style for the Download button */
+        .stDownloadButton button {
+            position: absolute;
+            top: -740px;
+            right: 20px;  /* Adjust margin as needed */
+            background-color: rgb(240, 240, 240);
+            border: 1.5px solid rgb(0, 0, 0);
+            padding: 0.25rem 0.75rem;
+            font-weight: 400;
+            color: black;
+            cursor: pointer;
+            text-align: center;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Create two columns for "Back" and "Download" buttons
+     col1, col2 = st.columns([1, 1])  # Equal width columns
+
+# Back button
+     with col1:
+      if st.button("Back"):
+        go_back()  # Use the go_back function defined earlier
+
+# Download button moved to top right side
      with col2:
-        st.download_button(
-            label="Download",
-            data=xml_content,
-            file_name="response.xml",
-            mime="application/xml"
-        )
-
-    # Display the XML content in a code block below
-     st.code(xml_content, language='xml')
-
-     # Back button   
-     if st.button("Back"):
-         if len(st.session_state.page_history) > 0:
-            st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
-         else:
-            st.error("No previous page to go back to.")
-
+      st.download_button(
+        label="Download",
+        data=csv_data,
+        file_name='bureau_data.csv',
+        mime='text/csv',
+    )
 

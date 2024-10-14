@@ -4,9 +4,9 @@ import plotly.express as px
 from lxml import etree
 
 # Load the XML file
-def load_xml(file):
+def load_xml(xml_file_path):
     try:
-        tree = etree.parse(file)
+        tree = etree.parse(xml_file_path)
         root = tree.getroot()
         return root
     except Exception as e:
@@ -23,6 +23,47 @@ def extract_ids_from_xml(root):
 
     return "N/A", "N/A"
 
+# Extract enquiry data and return items and requests
+def extract_enquiry_data(root):
+    items = [
+        "Enquiry Reference Number",
+        "Member Id",
+        "Purpose",
+        "Product",
+        "Search Type",
+        "Application Type",
+        "Account Type Detail",
+        "Amount",
+        "Terms",
+        "Client Reference 1",
+        "Client Reference 2",
+        "Credit Purpose",
+        "ConsUIQVersion",
+        "ConsUOFVersion"
+    ]
+
+    requests = []
+    for enquiry in root.xpath('.//PENQUIRY'):
+        requests.append([
+            enquiry.xpath('ClientEnquiryRefNumber/text()')[0] if enquiry.xpath('ClientEnquiryRefNumber/text()') else " ",
+            enquiry.xpath('EnqBureauMemberId/text()')[0] if enquiry.xpath('EnqBureauMemberId/text()') else " ",
+            enquiry.xpath('EnqPurpose/text()')[0] if enquiry.xpath('EnqPurpose/text()') else " ",
+            enquiry.xpath('EnqProduct/text()')[0] if enquiry.xpath('EnqProduct/text()') else " ",
+            enquiry.xpath('Product/text()')[0] if enquiry.xpath('Product/text()') else " ",
+            enquiry.xpath('EnquiryApplicationType/text()')[0] if enquiry.xpath('EnquiryApplicationType/text()') else " ",
+            enquiry.xpath('EnquiryAccountType/text()')[0] if enquiry.xpath('EnquiryAccountType/text()') else " ",
+            enquiry.xpath('EnquiryAmount/text()')[0] if enquiry.xpath('EnquiryAmount/text()') else " ",
+            enquiry.xpath('EnquiryTerms/text()')[0] if enquiry.xpath('EnquiryTerms/text()') else " ",
+            enquiry.xpath('ClientReference1/text()')[0] if enquiry.xpath('ClientReference1/text()') else " ",
+            enquiry.xpath('ClientReference2/text()')[0] if enquiry.xpath('ClientReference2/text()') else " ",
+            enquiry.xpath('EnquiryCreditPurpose/text()')[0] if enquiry.xpath('EnquiryCreditPurpose/text()') else " ",
+            enquiry.xpath('.//ENQHEADER/ConsUIQVersion/text()')[0] if enquiry.xpath('.//ENQHEADER/ConsUIQVersion/text()') else " ",
+            enquiry.xpath('.//ENQHEADER/ConsUOFVersion/text()')[0] if enquiry.xpath('.//ENQHEADER/ConsUOFVersion/text()') else " ",
+        
+        ])
+    
+    return items, requests
+
 # Function to go back to the previous page
 def go_back():
     if 'page_history' in st.session_state and st.session_state.page_history:
@@ -37,12 +78,13 @@ def request_page():
      st.markdown(""" 
         <style>
             .st-emotion-cache-13ln4jf {
-                max-width: 100% !important;
+                max-width: 95% !important;
                 width: 100% !important;
                 padding: 4rem 1rem 10rem; !important;
             }
             .dataframe {
                 margin-right: 100px;
+                margin-left: 100px;
             }
             .css-1lcbmhc {
                 padding-left: 0 !important;
@@ -55,6 +97,7 @@ def request_page():
             right: 10px; 
             text-align: right; 
             font-size: 12px;
+            font-family: Arial, sans-serif;
             color: black;
         }
        
@@ -62,26 +105,28 @@ def request_page():
         .header-text {
             display: inline-block;
             vertical-align: middle;
+            font-family: Arial, sans-serif;
             font-size: 20px;
             font-weight: bold;
             color: black;
         }
-        .st-emotion-cache-1vt4y43 {
-         display: inline-flex;
-         -webkit-box-align: center;
-         align-items: center;
-         -webkit-box-pack: center;
-         justify-content: center;
-         font-weight: 400;
-         padding: 0.25rem 0.75rem;
-         border-radius: 0.1rem;
-         margin: 4px;
-         line-height: 1.3;
-        color: black;
-        width: 110px;
-        user-select: none;
-        background-color: rgb(240 240 240);
-        border: 1.5px solid rgb(0 0 0);
+      .st-emotion-cache-1vt4y43 {
+    display: inline-flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    font-weight: 400;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.1rem;
+    /* min-height: 1.5rem; */
+    margin: 4px;
+    line-height: 1.3;
+    color: black;
+    width: 110px;
+    user-select: none;
+    background-color: rgb(240 240 240);
+    border: 1.5px solid rgb(0 0 0);
 }
 .st-emotion-cache-463q5x {
     margin: 0px;
@@ -140,9 +185,11 @@ def request_page():
 
         </style>
     """, unsafe_allow_html=True)
+     
      # Load the XML file for Provenir_id and Unique_id
-     file = './1_Account_035_Result.xml'
-     root = load_xml(file)
+     # xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
+     xml_file_path = "./1_Account_035_Result.xml" 
+     root = load_xml(xml_file_path)
 
      if root is None:
         st.error("Failed to load XML file.")
@@ -229,32 +276,47 @@ def request_page():
                 align-items: center;
                 justify-content: center;
             }
-        .st-emotion-cache-13ln4jf {
-            max-width: 100% !important;  
-            width: 100% !important;      
-            padding: 4rem 4rem 10rem !important;
-        }
-        .css-1lcbmhc {
-            padding-left: 0 !important;  
-            padding-right: 0 !important; 
-        }
-        .st-emotion-cache-165ax5l {
-           width: 70% !important;
-           margin-bottom: 1rem;
-            color: rgb(49, 51, 63);
-            border-collapse: collapse;
-            border: 1px solid rgba(49, 51, 63, 0.1);
-            margin-left: 180px; !important;
-        }
-       .st-emotion-cache-a51556 {
-           border-bottom: 1px solid rgba(49, 51, 63, 0.1);
-           border-right: 1px solid rgba(49, 51, 63, 0.1);
-           vertical-align: middle;
-           padding: 0.25rem 0.375rem;
-           font-weight: 400;
-           color: rgba(49, 51, 63, 0.6);
-           display: none;
-        }
+            .st-emotion-cache-a51556 {
+              border-bottom: 1px solid rgba(49, 51, 63);
+              border-right: 1px solid rgba(49, 51, 63);
+              vertical-align: middle;
+              padding: 0.25rem 0.375rem;
+              font-weight: 400;
+              color: rgba(49, 51, 63);
+              background-color: lightgray;
+            }
+            .st-emotion-cache-165ax5l {
+             width: 50%;
+             margin-bottom: 1rem;
+             color: rgb(49, 51, 63);
+             border-collapse: collapse;
+             border: 1px solid rgb(49 ,51 ,63);
+             margin-left: 50px;
+             margin-top: 20px;
+            }
+.st-emotion-cache-a51556 {
+    border-bottom: 1px solid rgb(49 ,51 ,63);
+    border-right: 1px solid rgb(49 ,51 ,63);
+    vertical-align: middle;
+    padding: 0.25rem 0.375rem;
+    font-weight: 400;
+    color: rgba(49, 51, 63);
+    background-color: lightgray;
+}
+    .st-emotion-cache-gdzsw5 {
+       border-bottom: 1px solid rgb(49 ,51 ,63);
+       border-right: 1px solid rgb(49 ,51 ,63);
+       vertical-align: middle;
+       padding: 0.25rem 0.375rem;
+    font-weight: 400;
+}
+.st-emotion-cache-gdzsw5 {
+    border-bottom: 1px solid rgba(49, 51, 63);
+    border-right: 1px solid rgb(49 ,51 ,63);
+    vertical-align: middle;
+    padding: 0.25rem 0.375rem;
+    font-weight: 400;
+}
         </style>
         """,
         unsafe_allow_html=True
@@ -271,89 +333,74 @@ def request_page():
         unsafe_allow_html=True
     )
     
-        # Styling
-     st.markdown(
-            """
-            <style>
-            .st-emotion-cache-13ln4jf {
-                max-width: 100% !important;
-                width: 100% !important;
-                padding: 4rem 1rem 10rem; !important;
-            }
-            .dataframe {
-                margin-right: 100px;
-            }
-            .css-1lcbmhc {
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
        
-     if 'form_data' in st.session_state:
-        form_data = st.session_state.form_data
+      # Extract enquiry data
+     items, requests = extract_enquiry_data(root)
 
-    # Create a list to hold all rows of form data (3 rows for each bureau)
-        data_rows = [form_data.copy() for _ in range(3)]  # Create 3 copies of form_data
+    # Create DataFrame for the table
+     if requests:
+      request_data = requests[0]  # Get the first request data only
+    
+    # Create a DataFrame with items as index and corresponding values
+     data = {
+        'Item': items,
+        'Request': request_data
+    }
+    
+    # Convert to DataFrame
+     requests_df = pd.DataFrame(data)
 
-    # Generate output in Table format without the "Credit Bureaus" column
-        data = pd.DataFrame(data_rows)
+    # Display the table
+     st.table(requests_df)
 
-        # Display the table
-        st.markdown(
-            """
-            <style>
-                .dataframe {
-                    border: 1px solid #ddd;
-                    padding: 8px;
-                    text-align: left;
-                    border-collapse: collapse;
-                    width: 85%;
-                    margin-left: 100px;
-                }
-                .dataframe th, .dataframe td {
-                    padding: 8px;
-                    border-bottom: 1px solid #ddd;
-                }
-                .dataframe tr:hover {
-                    background-color: #f5f5f5;
-                }
-            </style>
-            """,
-            unsafe_allow_html=True
-        )
-        st.markdown(data.to_html(escape=False, index=False), unsafe_allow_html=True)
+    # Optionally, create a DataFrame for download
+     if requests:
+        csv_data = requests_df.to_csv(index=False)
+        
+   # Adding custom CSS styling for buttons
+     st.markdown("""
+    <style>
+        /* Style for the Back button */
+        .stButton button {
+            margin-left: 50px;  /* Adjust this value as needed */
+            background-color: rgb(240, 240, 240);
+            border: 1.5px solid rgb(0, 0, 0);
+            padding: 0.25rem 0.75rem;
+            font-weight: 400;
+            color: black;
+            cursor: pointer;
+            text-align: center;
+        }
 
+        /* Style for the Download button */
+        .stDownloadButton button {
+            position: absolute;
+            top: -520px;
+            right: 20px;  /* Adjust margin as needed */
+            background-color: rgb(240, 240, 240);
+            border: 1.5px solid rgb(0, 0, 0);
+            padding: 0.25rem 0.75rem;
+            font-weight: 400;
+            color: black;
+            cursor: pointer;
+            text-align: center;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
- 
-        # Convert DataFrame to CSV format
-     csv_data = data.to_csv(index=False)
-
-    # Create two equal-width columns for "Download" and "Back" buttons
+# Create two columns for "Back" and "Download" buttons
      col1, col2 = st.columns([1, 1])  # Equal width columns
 
+# Back button
      with col1:
-        # Download button for CSV
-        st.download_button(
-            label="Download",
-            data=csv_data,
-            file_name='bureau_data.csv',
-            mime='text/csv',
-        )
+      if st.button("Back"):
+        go_back()  # Use the go_back function defined earlier
 
+# Download button moved to top right side
      with col2:
-         # Back button   
-        if st.button("Back"):
-         if len(st.session_state.page_history) > 0:
-            st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
-         else:
-            st.error("No previous page to go back to.")
-        
-
-
-
-
-
-
+      st.download_button(
+        label="Download",
+        data=csv_data,
+        file_name='bureau_data.csv',
+        mime='text/csv',
+    )

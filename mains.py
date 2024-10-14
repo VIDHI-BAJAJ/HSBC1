@@ -195,9 +195,12 @@ def display_form():
                     "Search Type": search_type,
                     "Call Type": call_type,
                 }
+                 # Also, store Application ID separately for the output
+                st.session_state.application_id = application_id
                 st.session_state.page = "output"  
             else:
-                st.warning("Please enter the Application ID.")  
+                st.warning("Please enter the Application ID.") 
+                
     #clearCriteria Info            
     if st.button("Clear Criteria"):
         for key in ['unique_id', 'application_id', 'first_name', 'last_name', 'country_code', 

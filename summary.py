@@ -2,9 +2,9 @@ import streamlit as st
 from lxml import etree
 
 # Load the XML file
-def load_xml(file):
+def load_xml(xml_file_path):
     try:
-        tree = etree.parse(file)
+        tree = etree.parse(xml_file_path)
         root = tree.getroot()
         return root
     except Exception as e:
@@ -33,9 +33,8 @@ def extract_data_for_account_lxml(element):
         for agg_local in aggregation_locals:
             aggregated_items = agg_local.xpath("./Aggregated")
             for agg_item in aggregated_items:
-                name = agg_item.get("Name")
                 value = agg_item.get("Value")
-                aggregated_data.append((name, value))  # Collect name and value as tuples
+                aggregated_data.append((value))  # Collect name and value as tuples
     return aggregated_data  # Return the aggregated data
 
 # Function to display summary information based on extracted aggregated data
@@ -43,9 +42,9 @@ def display_summary_info(aggregated_data):
     # Ensure there is aggregated data to display
     if aggregated_data:
         # For this example, we will take the first name and value
-        name, value = aggregated_data[0]  # Adjust as needed (or implement a selection mechanism)
+        value = aggregated_data[0]  # Adjust as needed (or implement a selection mechanism)
     else:
-        name, value = "N/A", "N/A"
+        value = "N/A", "N/A"
         
     # Display the summary information using the HTML template
     st.markdown(f"""
@@ -56,7 +55,7 @@ def display_summary_info(aggregated_data):
         background-color: #f9f9f9;
         ">
         <h1 style="font-size: 18px;">
-            This applicant currently holds several open accounts, with the newest account being <b>{name}</b> months old. The total default unpaid amount is <b>{value}</b>, indicating a history of potential financial distress. These insights help underwriters assess the creditworthiness of the applicant by providing a snapshot of their current financial obligations and the recency of their credit activity.
+            This applicant currently holds several open accounts, with the newest account being <b>{value}</b> months old. The total default unpaid amount is <b>{value}</b>, indicating a history of potential financial distress. These insights help underwriters assess the creditworthiness of the applicant by providing a snapshot of their current financial obligations and the recency of their credit activity.
         </h1>
     </div>
     """, unsafe_allow_html=True)
@@ -176,8 +175,9 @@ def summary_page():
     """, unsafe_allow_html=True)
      
      # Load the XML file for Provenir_id and Unique_id
-     file = './1_Account_035_Result.xml'
-     root = load_xml(file)
+     # xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
+     xml_file_path = "./1_Account_035_Result.xml" 
+     root = load_xml(xml_file_path)
 
      if root is None:
         st.error("Failed to load XML file.")
