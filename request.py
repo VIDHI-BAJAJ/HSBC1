@@ -42,26 +42,26 @@ def extract_enquiry_data(root):
         "ConsUOFVersion"
     ]
 
+ 
     requests = []
     for enquiry in root.xpath('.//PENQUIRY'):
-        requests.append([
-            enquiry.xpath('ClientEnquiryRefNumber/text()')[0] if enquiry.xpath('ClientEnquiryRefNumber/text()') else " ",
-            enquiry.xpath('EnqBureauMemberId/text()')[0] if enquiry.xpath('EnqBureauMemberId/text()') else " ",
-            enquiry.xpath('EnqPurpose/text()')[0] if enquiry.xpath('EnqPurpose/text()') else " ",
-            enquiry.xpath('EnqProduct/text()')[0] if enquiry.xpath('EnqProduct/text()') else " ",
-            enquiry.xpath('Product/text()')[0] if enquiry.xpath('Product/text()') else " ",
-            enquiry.xpath('EnquiryApplicationType/text()')[0] if enquiry.xpath('EnquiryApplicationType/text()') else " ",
-            enquiry.xpath('EnquiryAccountType/text()')[0] if enquiry.xpath('EnquiryAccountType/text()') else " ",
-            enquiry.xpath('EnquiryAmount/text()')[0] if enquiry.xpath('EnquiryAmount/text()') else " ",
-            enquiry.xpath('EnquiryTerms/text()')[0] if enquiry.xpath('EnquiryTerms/text()') else " ",
-            enquiry.xpath('ClientReference1/text()')[0] if enquiry.xpath('ClientReference1/text()') else " ",
-            enquiry.xpath('ClientReference2/text()')[0] if enquiry.xpath('ClientReference2/text()') else " ",
-            enquiry.xpath('EnquiryCreditPurpose/text()')[0] if enquiry.xpath('EnquiryCreditPurpose/text()') else " ",
-            enquiry.xpath('.//ENQHEADER/ConsUIQVersion/text()')[0] if enquiry.xpath('.//ENQHEADER/ConsUIQVersion/text()') else " ",
-            enquiry.xpath('.//ENQHEADER/ConsUOFVersion/text()')[0] if enquiry.xpath('.//ENQHEADER/ConsUOFVersion/text()') else " ",
-        
-        ])
-    
+     requests.append([
+        enquiry.xpath('ClientEnquiryRefNumber/text()')[0] if enquiry.xpath('ClientEnquiryRefNumber/text()') else " ",
+        enquiry.xpath('EnqBureauMemberId/text()')[0] if enquiry.xpath('EnqBureauMemberId/text()') else " ",
+        enquiry.xpath('EnqPurpose/text()')[0] if enquiry.xpath('EnqPurpose/text()') else " ",
+        enquiry.xpath('EnqProduct/text()')[0] if enquiry.xpath('EnqProduct/text()') else " ",
+        enquiry.xpath('Product/text()')[0] if enquiry.xpath('Product/text()') else " ",
+        enquiry.xpath('EnquiryApplicationType/text()')[0] if enquiry.xpath('EnquiryApplicationType/text()') else " ",
+        enquiry.xpath('EnquiryAccountType/text()')[0] if enquiry.xpath('EnquiryAccountType/text()') else " ",
+        enquiry.xpath('EnquiryAmount/text()')[0] if enquiry.xpath('EnquiryAmount/text()') else " ",
+        enquiry.xpath('EnquiryTerms/text()')[0] if enquiry.xpath('EnquiryTerms/text()') else " ",
+        enquiry.xpath('ClientReference1/text()')[0] if enquiry.xpath('ClientReference1/text()') else " ",
+        enquiry.xpath('ClientReference2/text()')[0] if enquiry.xpath('ClientReference2/text()') else " ",
+        enquiry.xpath('EnquiryCreditPurpose/text()')[0] if enquiry.xpath('EnquiryCreditPurpose/text()') else " ",
+        root.xpath('.//ENQHEADER/ConsUIQVersion/text()')[0] if root.xpath('.//ENQHEADER/ConsUIQVersion/text()') else " ",  # Use root to access ENQHEADER
+        root.xpath('.//ENQHEADER/ConsUOFVersion/text()')[0] if root.xpath('.//ENQHEADER/ConsUOFVersion/text()') else " ",  # Use root to access ENQHEADER
+    ])
+
     return items, requests
 
 # Function to go back to the previous page
