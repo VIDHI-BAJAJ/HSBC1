@@ -139,8 +139,9 @@ def fraud_page():
     """, unsafe_allow_html=True)
      
      # Load the XML file for Provenir_id and Unique_id
-     file = './1_Account_035_Result.xml'
-     root = load_xml(file)
+    #  xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
+     xml_file_path = "./1_Account_035_Result.xml" 
+     root = load_xml(xml_file_path)
 
      if root is None:
         st.error("Failed to load XML file.")

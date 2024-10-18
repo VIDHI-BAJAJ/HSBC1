@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from lxml import etree
 
-from lxml import etree
 
 # Function to extract data from the saved XML file
 def extract_data_from_xml(application_id):

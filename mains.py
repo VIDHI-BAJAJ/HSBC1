@@ -4,35 +4,35 @@ import requests
 from lxml import etree
 
 # # API request and save function
-# def fetch_and_save_response(application_id):
-#     api_url = "https://your-api-endpoint.com/getData"  # Replace with actual API URL
+def fetch_and_save_response(application_id):
+    api_url = "https://jsonplaceholder.typicode.com/posts/1"  # Replace with actual API URL
 
-#     # Construct the request payload
-#     request_payload = {
-#         "ApplicationID": application_id
-#     }
+    # Construct the request payload
+    request_payload = {
+        "ApplicationID": application_id
+    }
 
-#     # Send POST request to the API
-#     response = requests.post(api_url, json=request_payload)
+    # Send POST request to the API
+    response = requests.post(api_url, json=request_payload)
 
-#     if response.status_code == 200:
-#         response_data = response.json()  # Parse the JSON response
+    if response.status_code == 200:
+        response_data = response.json()  # Parse the JSON response
 
-#         # Convert JSON to XML and save as xyz.xml
-#         root = etree.Element("Root")
-#         for key, value in response_data.items():
-#             child = etree.SubElement(root, key)
-#             child.text = str(value)
+        # Convert JSON to XML and save as xyz.xml
+        root = etree.Element("Root")
+        for key, value in response_data.items():
+            child = etree.SubElement(root, key)
+            child.text = str(value)
 
-#         # Save XML response to a file
-#         xml_file_name = "xyz.xml"
-#         with open(xml_file_name, "wb") as f:
-#             f.write(etree.tostring(root, pretty_print=True))
+        # Save XML response to a file
+        xml_file_name = "xyz.xml"
+        with open(xml_file_name, "wb") as f:
+            f.write(etree.tostring(root, pretty_print=True))
 
-#         st.session_state.xml_file_path = xml_file_name  # Save the file path in session state
-#         st.success(f"Response saved successfully as {xml_file_name}")
-#     else:
-#         st.error(f"Failed to fetch data. Status code: {response.status_code}")
+        st.session_state.xml_file_path = xml_file_name  # Save the file path in session state
+        st.success(f"Response saved successfully as {xml_file_name}")
+    else:
+        st.error(f"Failed to fetch data. Status code: {response.status_code}")
 
 
 #main page
