@@ -18,8 +18,8 @@ def extract_ids_from_xml(root):
     header_segment = root.find(".//HeaderSegment")
     if header_segment is not None:
         provenir_id = header_segment.get("ProvenirID", "N/A")
-        unique_id = header_segment.get("UniqueID", "N/A")
-        return provenir_id, unique_id
+        ReferenceNumber = header_segment.get("ReferenceNumber", "N/A")
+        return provenir_id, ReferenceNumber
 
     return "N/A", "N/A"
 
@@ -148,13 +148,13 @@ def vericheck_page():
         return
 
   
-     provenir_id, unique_id = extract_ids_from_xml(root)
+     provenir_id, ReferenceNumber = extract_ids_from_xml(root)
 
 
      st.markdown(f"""
         <div class='top-info'>
         <b>Provenir ID:</b> {provenir_id}<br>
-        <b>Unique ID:</b> {unique_id}
+        <b>Reference:</b> {ReferenceNumber}
         </div>
     """, unsafe_allow_html=True)
 
