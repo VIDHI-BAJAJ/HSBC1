@@ -1,18 +1,28 @@
 import streamlit as st
 import pandas as pd
 from lxml import etree
+from urllib.parse import urlparse, parse_qs
+
 
 # Load the XML file
-def load_xml(xml_file_path):
+def load_xml(file):
     try:
-        tree = etree.parse(xml_file_path)
+        tree = etree.parse(file)
         root = tree.getroot()
         return root
     except Exception as e:
         st.error(f"Error loading XML file: {e}")
         return None
- 
 
+# Check if XML path is in session state and load the XML file
+if "xml_file_path" in st.session_state:
+    xml_file_path = st.session_state.xml_file_path
+    root = load_xml(xml_file_path)  # Load the XML file using the path from session state
+
+    if root is None:
+        st.error("Failed to load XML file.")
+else:
+    st.error("XML file path not found in session state. Please set the XML path first.")
 
 # Extract Provenir ID and Unique ID from XML file
 def extract_ids_from_xml(root):
@@ -216,15 +226,7 @@ def raw_page():
         </style>
     """, unsafe_allow_html=True)
      
-     # Load the XML file for Provenir_id and Unique_id
-    #  xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
-     xml_file_path = "./1_Account_035_Result.xml" 
-     root = load_xml(xml_file_path)
-
-     if root is None:
-        st.error("Failed to load XML file.")
-        return
-
+     
   
      provenir_id, ReferenceNumber = extract_ids_from_xml(root)
 
@@ -347,15 +349,11 @@ def raw_page():
         """,
         unsafe_allow_html=True
     )
+     
+    
 
      st.title("Raw Data Table")
-
-     file = './1_Account_035_Result.xml'
-     root = load_xml(file)
-
-     if root is None:
-        st.error("Failed to load XML file.")
-        return
+  
 
     # Extract raw data using the existing function
      raw_data, _ = extract_data_for_account_lxml(root)

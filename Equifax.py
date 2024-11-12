@@ -5,14 +5,26 @@ from lxml import etree
 
 
 # Load the XML file
-def load_xml(xml_file_path):
+def load_xml(file):
     try:
-        tree = etree.parse(xml_file_path)
+        tree = etree.parse(file)
         root = tree.getroot()
         return root
     except Exception as e:
         st.error(f"Error loading XML file: {e}")
         return None
+
+# Check if XML path is in session state and load the XML file
+if "xml_file_path" in st.session_state:
+    xml_file_path = st.session_state.xml_file_path
+    root = load_xml(xml_file_path)  # Load the XML file using the path from session state
+
+    if root is None:
+        st.error("Failed to load XML file.")
+else:
+    st.error("XML file path not found in session state. Please set the XML path first.")
+
+
 
 # #Extracting Of Raw And Aggregated data from Xml file
 def extract_data_for_account_lxml(element):
@@ -219,14 +231,7 @@ def main1():
         </style>
     """, unsafe_allow_html=True)
 
-    # Load the XML file for Provenir_id and Unique_id
-    # xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
-    xml_file_path = "./1_Account_035_Result.xml" 
-    root = load_xml(xml_file_path)
 
-    if root is None:
-        st.error("Failed to load XML file.")
-        return
 
   
     provenir_id, ReferenceNumber = extract_ids_from_xml(root)

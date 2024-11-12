@@ -3,15 +3,27 @@ import pandas as pd
 import plotly.express as px
 from lxml import etree
 
+
 # Load the XML file
-def load_xml(xml_file_path):
+def load_xml(file):
     try:
-        tree = etree.parse(xml_file_path)
+        tree = etree.parse(file)
         root = tree.getroot()
         return root
     except Exception as e:
         st.error(f"Error loading XML file: {e}")
         return None
+
+# Check if XML path is in session state and load the XML file
+if "xml_file_path" in st.session_state:
+    xml_file_path = st.session_state.xml_file_path
+    root = load_xml(xml_file_path)  # Load the XML file using the path from session state
+
+    if root is None:
+        st.error("Failed to load XML file.")
+else:
+    st.error("XML file path not found in session state. Please set the XML path first.")
+
 
 # Extract Provenir ID and Unique ID from XML file
 def extract_ids_from_xml(root):
@@ -156,29 +168,18 @@ def analyze_page():
         </style>
     """, unsafe_allow_html=True)
     
-     if 'data' not in st.session_state:
-        try:
-            tree = etree.parse('./1_Account_035_Result.xml')
-            # tree = etree.parse('./xyz.xml')
-            root = tree.getroot()
+          # Check if data exists in session state, else extract it
+     if "data" not in st.session_state:
+            # Extract PSUMMARY data
             data = extract_psummary_data(root)
             if data.empty:
                 st.error("No data extracted from the XML file.")
-                return
-            st.session_state.data = data
-            st.success("Data successfully extracted and loaded.")
-        except Exception as e:
-            st.error(f"Error loading XML file: {e}")
-            return
-        
-     # Load the XML file for Provenir_id and Unique_id
-    #  xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
-     xml_file_path = "./1_Account_035_Result.xml" 
-     root = load_xml(xml_file_path)
+            else:
+                # Store extracted data in session state
+                st.session_state.data = data
+                st.success("Data successfully extracted and loaded.")
 
-     if root is None:
-        st.error("Failed to load XML file.")
-        return
+    
 
   
      provenir_id, ReferenceNumber = extract_ids_from_xml(root)

@@ -2,15 +2,32 @@ import streamlit as st
 import pandas as pd
 from lxml import etree
 
-
 # Load the XML file
-def load_xml(xml_file_path):
+def load_xml(file):
     try:
-        tree = etree.parse(xml_file_path)
+        tree = etree.parse(file)
         root = tree.getroot()
         return root
     except Exception as e:
         st.error(f"Error loading XML file: {e}")
+        return None
+
+# Check if XML path is in session state and load the XML file
+if "xml_file_path" in st.session_state:
+    xml_file_path = st.session_state.xml_file_path
+    root = load_xml(xml_file_path)  # Load the XML file using the path from session state
+
+    if root is None:
+        st.error("Failed to load XML file.")
+else:
+    st.error("XML file path not found in session state. Please set the XML path first.")
+
+# Parse XML string back into an element
+def parse_xml_string(xml_string):
+    try:
+        return etree.fromstring(xml_string)
+    except Exception as e:
+        st.error(f"Error parsing XML string: {e}")
         return None
 
 # #Extracting Of Raw And Aggregated data from Xml file
@@ -118,8 +135,7 @@ def extract_ids_from_xml(root):
 
 
 # Main function Experian
-def experian_page():
-    
+def experian_page():    
  #Styling
     st.markdown(""" 
         <style>
@@ -144,7 +160,7 @@ def experian_page():
             color: black;
         }
       .st-emotion-cache-1vt4y43 {
-    display: inline-flex;
+     display: inline-flex;
     -webkit-box-align: center;
     align-items: center;
     -webkit-box-pack: center;
@@ -219,16 +235,13 @@ def experian_page():
         </style>
     """, unsafe_allow_html=True)
 
-    # Load the XML file for Provenir_id and Unique_id
-    # xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
-    xml_file_path = "./1_Account_035_Result.xml" 
-    root = load_xml(xml_file_path)
+     
+ 
 
     if root is None:
         st.error("Failed to load XML file.")
         return
 
-  
     provenir_id, ReferenceNumber = extract_ids_from_xml(root)
 
 
@@ -358,6 +371,20 @@ def experian_page():
         """,
         unsafe_allow_html=True
     )
+     # Inject JavaScript for navigation and back button support
+    st.markdown(f"""
+    <script>
+    function navigateTo(page) {{
+        window.location.hash = page;  // Update the URL hash
+    }}
+
+    // Listen for hash change (back/forward button) to reload the page
+    window.addEventListener("hashchange", function() {{
+        const page = window.location.hash.replace('#', '') || 'Home';
+        window.location.reload();  // Reload the Streamlit app to update the session state
+    }});
+    </script>
+    """, unsafe_allow_html=True)
 
     st.title("Aggregated Data")
     # Extract raw data using the existing function
@@ -375,3 +402,10 @@ def experian_page():
          else:
             st.error("No previous page to go back to.")
 
+    # JavaScript for hash-based navigation
+    st.markdown("""
+    <script>
+        function navigateTo(page) { window.location.hash = page; }
+        window.addEventListener("hashchange", () => window.location.reload());
+    </script>
+    """, unsafe_allow_html=True)

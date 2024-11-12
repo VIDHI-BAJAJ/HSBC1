@@ -3,37 +3,47 @@ import pandas as pd
 import requests
 from lxml import etree
 
-# # API request and save function
-def fetch_and_save_response(application_id):
-    api_url = "https://jsonplaceholder.typicode.com/posts/1"  # Replace with actual API URL
+# API request and save function
+# def fetch_and_save_response(application_id):
+#     api_url = "https://jsonplaceholder.typicode.com/posts/1"  # Replace with actual API URL
 
-    # Construct the request payload
-    request_payload = {
-        "ApplicationID": application_id
-    }
+#     # Construct the request payload
+#     request_payload = {
+#         "ApplicationID": application_id
+#     }
 
-    # Send POST request to the API
-    response = requests.post(api_url, json=request_payload)
+#     # Send POST request to the API
+#     response = requests.post(api_url, json=request_payload)
 
-    if response.status_code == 200:
-        response_data = response.json()  # Parse the JSON response
+#     if response.status_code == 200:
+#         response_data = response.json()  # Parse the JSON response
 
-        # Convert JSON to XML and save as xyz.xml
-        root = etree.Element("Root")
-        for key, value in response_data.items():
-            child = etree.SubElement(root, key)
-            child.text = str(value)
+#         # Convert JSON to XML and save as xyz.xml
+#         root = etree.Element("Root")
+#         for key, value in response_data.items():
+#             child = etree.SubElement(root, key)
+#             child.text = str(value)
 
-        # Save XML response to a file
-        xml_file_name = "xyz.xml"
-        with open(xml_file_name, "wb") as f:
-            f.write(etree.tostring(root, pretty_print=True))
+#         # Save XML response to a file
+#         xml_file_name = "xyz.xml"
+#         with open(xml_file_name, "wb") as f:
+#             f.write(etree.tostring(root, pretty_print=True))
 
-        st.session_state.xml_file_path = xml_file_name  # Save the file path in session state
-        st.success(f"Response saved successfully as {xml_file_name}")
-    else:
-        st.error(f"Failed to fetch data. Status code: {response.status_code}")
+#         st.session_state.xml_file_path = xml_file_name  # Save the file path in session state
+#         st.success(f"Response saved successfully as {xml_file_name}")
+#     else:
+#         st.error(f"Failed to fetch data. Status code: {response.status_code}")
+        
+#     return xml_file_name
 
+
+
+# Example where you set the XML path (this should be in your app logic)
+xml_file_name = "./1_Account_035_Result.xml"
+
+# Only set it if it is not already in session state to avoid overwriting
+if "xml_file_path" not in st.session_state:
+    st.session_state.xml_file_path = xml_file_name
 
 #main page
 def display_form():
@@ -166,8 +176,8 @@ def display_form():
 
    
     with st.form(key="submit_form1"):
-        unique_id = st.text_input("Unique ID", value=st.session_state.unique_id)
-        application_id = st.text_input("Application ID *", value=st.session_state.application_id)
+        unique_id = st.text_input("Unique ID *", value=st.session_state.unique_id)
+        application_id = st.text_input("Application ID", value=st.session_state.application_id)
         first_name = st.text_input("First Name", value=st.session_state.first_name)
         last_name = st.text_input("Last Name", value=st.session_state.last_name)
         country_code = st.text_input("Country Code", value=st.session_state.country_code)
@@ -181,7 +191,7 @@ def display_form():
 #submit info
         submitted = st.form_submit_button("Submit")
         if submitted:
-            if application_id:
+            if unique_id:
                 st.session_state.form_data = {
                     "Unique ID": unique_id,
                     "Application ID": application_id,
@@ -195,11 +205,11 @@ def display_form():
                     "Search Type": search_type,
                     "Call Type": call_type,
                 }
-                 # Also, store Application ID separately for the output
-                st.session_state.application_id = application_id
+                 # Also, store Unique ID separately for the output
+                st.session_state.unique_id = unique_id
                 st.session_state.page = "output"  
             else:
-                st.warning("Please enter the Application ID.") 
+                st.warning("Please enter the Unique ID.") 
                 
     #clearCriteria Info            
     if st.button("Clear Criteria"):

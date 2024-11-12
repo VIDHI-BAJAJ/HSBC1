@@ -2,17 +2,27 @@ import streamlit as st
 import pandas as pd
 from lxml import etree
 
-
 # Load the XML file
-def load_xml(xml_file_path):
+def load_xml(file):
     try:
-        tree = etree.parse(xml_file_path)
+        tree = etree.parse(file)
         root = tree.getroot()
         return root
     except Exception as e:
         st.error(f"Error loading XML file: {e}")
         return None
-    
+
+# Check if XML path is in session state and load the XML file
+if "xml_file_path" in st.session_state:
+    xml_file_path = st.session_state.xml_file_path
+    root = load_xml(xml_file_path)  # Load the XML file using the path from session state
+
+    if root is None:
+        st.error("Failed to load XML file.")
+else:
+    st.error("XML file path not found in session state. Please set the XML path first.")
+
+
 # Function to go back to the previous page
 def go_back():
     if 'page_history' in st.session_state and st.session_state.page_history:
@@ -207,15 +217,6 @@ def response_page():
         </style>
     """, unsafe_allow_html=True)
      
-     # Load the XML file for Provenir_id and Unique_id
-    #  xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
-     xml_file_path = "./1_Account_035_Result.xml" 
-     root = load_xml(xml_file_path)
-
-     if root is None:
-        st.error("Failed to load XML file.")
-        return
-
   
      provenir_id, ReferenceNumber = extract_ids_from_xml(root)
 
@@ -464,10 +465,15 @@ def response_page():
 
 # Download button moved to top right side
      with col2:
-      st.download_button(
-        label="Download",
-        data=csv_data,
-        file_name='bureau_data.csv',
-        mime='text/csv',
-    )
+    # Get the XML file content dynamically using the file path stored in session state
+      if "xml_file_path" in st.session_state:
+        xml_file_path = st.session_state.xml_file_path
+        with open(xml_file_path, "rb") as file:
+            xml_data = file.read()  # Read the binary data from the XML file
 
+        st.download_button(
+            label="Download",
+            data=xml_data,
+            file_name=xml_file_path.split("/")[-1],  # Extract the file name dynamically
+            mime='application/xml'
+        )

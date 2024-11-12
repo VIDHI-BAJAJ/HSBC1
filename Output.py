@@ -1,14 +1,26 @@
 import streamlit as st
 import pandas as pd
 from lxml import etree
+from Equifax import main1
+from Experian import experian_page
+from illion import illion_page
+
+
+def load_xml(xml_file_path):
+    try:
+        tree = etree.parse(xml_file_path)
+        return tree.getroot()
+    except Exception as e:
+        st.error(f"Error loading XML file: {e}")
+        return None
 
 
 # Function to extract data from the saved XML file
-def extract_data_from_xml(application_id):
+def extract_data_from_xml(unique_id):
     # Replace this with the correct file path where the XML file is saved from the API
     # xml_file_path = "./xyz.xml"  # Assuming the XML is saved as xyz.xml after the API call
     xml_file_path = "./1_Account_035_Result.xml" 
-
+   
     try:
         tree = etree.parse(xml_file_path)  # Load the saved XML file
     except FileNotFoundError:
@@ -25,7 +37,7 @@ def extract_data_from_xml(application_id):
     # Extracting details from HeaderSegment
     header = root.find('.//HeaderSegment')
     
-    unique_id = header.get('UniqueID', '')
+    applicant_id = header.get('ReferenceNumber' , '')
     country_code = header.get('Country', '')
     application_date = header.get('ApplicationDate', '')
     application_time = ""  # If you have time in a different field, adjust here
@@ -49,7 +61,7 @@ def extract_data_from_xml(application_id):
     # Return extracted data
     return {
         "Unique ID": unique_id,
-        "Application ID": application_id,
+        "Application ID": applicant_id,
         "First Name": first_name,
         "Last Name": last_name,
         "Country Code": country_code,
@@ -60,6 +72,8 @@ def extract_data_from_xml(application_id):
         "Search Type": search_type,
         "Call Type": call_type,
     }
+
+
 
 def display_output():
     st.image("logo.png", width=200)  # Logo Arrangement
@@ -146,18 +160,18 @@ def display_output():
         unsafe_allow_html=True
     )
 
-    # Check if the form data is available in session
-    if 'application_id' in st.session_state:
-        application_id = st.session_state.application_id
+    # # # Check if the form data is available in session
+    if 'unique_id' in st.session_state:
+        unique_id = st.session_state.unique_id
 
         # Extract data for the first row from the XML
-        first_row_data = extract_data_from_xml(application_id)
+        first_row_data = extract_data_from_xml(unique_id)
         if first_row_data:
             # Fill the first row and set the next two rows with only Application ID
             data_rows = [
                 {**first_row_data, "Group Member": ""}  # Include Group Member as empty
             ] + [
-                {"Application ID": application_id, "Group Member": ""} for _ in range(2)  # Group Member is empty for all
+                {"Unique ID": unique_id, "Group Member": ""} for _ in range(2)  # Group Member is empty for all
             ]
             
             # Create a DataFrame for display
@@ -166,6 +180,17 @@ def display_output():
 
             # Display the DataFrame in HTML table format
             st.markdown(df.to_html(escape=False, index=False), unsafe_allow_html=True)
+    
+            # Load the appropriate content based on the selected section
+            if 'page' not in st.session_state:
+                st.session_state.page = None  # Set a default value
+            
+            if st.session_state.page == "equifax":
+                main1()  # Show the Equifax data page
+            elif st.session_state.page == "experian":
+                experian_page()  # Show the Experian page
+            elif st.session_state.page == "illion":
+                illion_page()  # Show the Illion page
 
         # Display the table
         st.markdown(
@@ -246,7 +271,7 @@ def display_output():
                 st.rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
-
+         
         # Return Button to go back
         if st.button("Back"):
             if 'form_data' in st.session_state:

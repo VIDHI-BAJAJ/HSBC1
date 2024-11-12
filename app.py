@@ -15,7 +15,6 @@ from vericheck import vericheck_page # Assuming aggregated_page is the correct f
 from fraud import fraud_page # Assuming aggregated_page is the correct function name for the aggregated page
 from aml import aml_page # Assuming aggregated_page is the correct function name for the aggregated page
 
-
 # Main logic for navigation
 def main():
     # If there is no 'page' in session state, start on the form page
