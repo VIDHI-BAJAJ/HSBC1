@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from lxml import etree
-
+from navigation import navigate_to, get_previous_page, get_next_page
 
 # Load the XML file
 def load_xml(file):
@@ -23,7 +23,6 @@ if "xml_file_path" in st.session_state:
         st.error("Failed to load XML file.")
 else:
     st.error("XML file path not found in session state. Please set the XML path first.")
-
 
 # Extract Provenir ID and Unique ID from XML file
 def extract_ids_from_xml(root):
@@ -168,7 +167,10 @@ def analyze_page():
         </style>
     """, unsafe_allow_html=True)
     
-          # Check if data exists in session state, else extract it
+ 
+   
+   
+      # Check if data exists in session state, else extract it
      if "data" not in st.session_state:
             # Extract PSUMMARY data
             data = extract_psummary_data(root)
@@ -179,7 +181,7 @@ def analyze_page():
                 st.session_state.data = data
                 st.success("Data successfully extracted and loaded.")
 
-    
+  
 
   
      provenir_id, ReferenceNumber = extract_ids_from_xml(root)
@@ -201,49 +203,48 @@ def analyze_page():
     # Navbar Buttons
      navbar = st.container()
      with navbar:
-        col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(10)
+        col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns([1,1,1,1,1,1,1,1,1,1])
 
         with col1:
-            if st.button("Request"):
-               st.session_state.page_history.append(st.session_state.page)
-               st.session_state.page = "Request"        
-        with col2:
-            if st.button("Response"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Response"
+            if st.button("Request", key="request_btn"):
+                navigate_to("request") 
 
+                 
+        with col2:
+            if st.button("Response", key="response_btn"):
+               navigate_to("response")
+               
         with col3:
-            if st.button("Demograph"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Demograph"
+            if st.button("Demograph", key="demograph_btn"):
+                navigate_to("demograph") 
+                       
         with col4:
-            if st.button("Analyze"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "analyze"
+            if st.button("Analyze", key="analyze_btn"):
+                navigate_to("analyze")
+                       
         with col5:
-            if st.button("VeriCheck"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "VeriCheck"
+            if st.button("VeriCheck", key="vericheck_btn"):
+                navigate_to("vericheck")
+                
         with col6:
-            if st.button("AML"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "AML"
+            if st.button("AML", key="aml_btn"):
+                navigate_to("aml")
+                
         with col7:
-            if st.button("Fraud"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Fraud"
+            if st.button("Fraud", key="fraud_btn"):
+                navigate_to("fraud")
+                
         with col8:
-            if st.button("Raw"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Raw"
+            if st.button("Raw", key="raw_btn"):
+               navigate_to("raw")
+               
         with col9:
-            if st.button("Aggregated"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Aggregated"
+            if st.button("Aggregated", key="aggregated_btn"):
+                navigate_to("aggregated")
+                  
         with col10:
-            if st.button("Summary"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Summary"
+            if st.button("Summary", key="summary_btn"):
+                navigate_to("summary")
 
      st.markdown('</div>', unsafe_allow_html=True)
      
@@ -338,68 +339,68 @@ def analyze_page():
             width: 300px !important;  /* Set your desired width here */
             margin-left: 20px;  /* Set your desired left margin here */
         }
+        
     </style>
     """,
     unsafe_allow_html=True
 )
+     
      st.subheader("Analysis Page")
 
-    # Check if data is available in session state
+# Check if data is available in session state
      if 'data' not in st.session_state or st.session_state.data.empty:
-        st.error("No data available to plot. Please check the XML file.")
-        return
+      st.error("No data available to plot. Please check the XML file.")
+     else:
+      data = st.session_state.data
 
-     data = st.session_state.data
-     graph_type = st.selectbox("Select a graph type to display:", ["Line Graph", "Bar Graph", "Pie Chart"])
+    # Create columns for layout
+     col1, col2 = st.columns(2)
 
-     chart_placeholder = st.empty()
-     with chart_placeholder.container():
-          if graph_type == "Line Graph":
-            # Add selectbox for Y-axis variable
-            y_axis_option = st.selectbox("Select Y-axis value", options=["CurrentLimit", "FirstReportedLimitAmt", "TermOfLoan"])
-            line_fig = px.line(data, x='CreditorName', y=y_axis_option, title=f"{y_axis_option} by Creditor Name")
-            st.plotly_chart(line_fig)
-          
-          elif graph_type == "Bar Graph":
-            y_and_color_option = st.selectbox("Select Y-axis value", options=["CurrentLimit", "FirstReportedLimitAmt", "TermOfLoan"])
-            st.subheader(f"Bar Graph of { y_and_color_option} by Creditor Name")
-            bar_fig = px.bar(data, x='CreditorName', y= y_and_color_option, 
-                     color=  y_and_color_option,  # Use the selected color column
-                     title=f"{ y_and_color_option} by Creditor Name",
-                     color_discrete_sequence=px.colors.qualitative.Plotly)  # Use a qualitative color scale
-            st.plotly_chart(bar_fig)
+     with col1:
+        # Line Graph - Current Limit by Creditor Name
+        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+        line_fig = px.line(data, x='CreditorName', y='CurrentLimit', title="Current Limit by Creditor Name")
+        st.plotly_chart(line_fig)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-          elif graph_type == "Pie Chart":
-            st.subheader("Pie Chart of Account Status (Open vs Closed)")
-    # Initialize counts
-            Open_count = 0
-            Closed_count = 0
-
-    # Loop through the AccountStatus values and count occurrences
-            for status in data['AccountStatus']:
-             if status == 'O':
-               Open_count += 1
-             elif status == 'C':
-              Closed_count += 1
-
-
-    # Prepare data for the pie chart only if there's at least one count
-            if Open_count == 0 and Closed_count == 0:
-             st.error("No data available for Open or Closed accounts.")
-             return
-
+        # Pie Chart - Distribution of Account Status
+        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+        open_count = data['AccountStatus'].value_counts().get('O', 0)
+        closed_count = data['AccountStatus'].value_counts().get('C', 0)
+        if open_count == 0 and closed_count == 0:
+            st.error("No data available for Open or Closed accounts.")
+        else:
             pie_data = pd.DataFrame({
-             'AccountStatus': ['Open', 'Closed'],
-             'Count': [Open_count, Closed_count]
+                'AccountStatus': ['Open', 'Closed'],
+                'Count': [open_count, closed_count]
             })
-
-    # Create the pie chart
             pie_fig = px.pie(pie_data, names='AccountStatus', values='Count', title="Distribution of Account Status")
             st.plotly_chart(pie_fig)
+        st.markdown('</div>', unsafe_allow_html=True)
 
- # Back button   
-     if st.button("Back"):
-         if len(st.session_state.page_history) > 0:
-            st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
-         else:
-            st.error("No previous page to go back to.")
+     with col2:
+        # Scatter Plot - First Reported Limit Amount by Creditor Name
+        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+        scatter_fig = px.scatter(data, x='CreditorName', y='FirstReportedLimitAmt', title="First Reported Limit Amt by Creditor Name")
+        st.plotly_chart(scatter_fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+         # Bar Graph - Current Limit by Creditor Name
+        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+        bar_fig = px.bar(data, x='CreditorName', y='CurrentLimit', 
+                         color='CurrentLimit',  
+                         title="Current Limit by Creditor Name",
+                         color_discrete_sequence=px.colors.qualitative.Plotly)
+        st.plotly_chart(bar_fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Additional Graphs
+     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+     term_fig = px.area(data, x="CreditorName", y="TermOfLoan", title="Term Of Loan by Creditor Name")
+     st.plotly_chart(term_fig)
+     st.markdown('</div>', unsafe_allow_html=True)
+
+    # Back button   
+     if st.button("Back"):            
+        prev_page = get_previous_page(st.session_state.page)
+        navigate_to(prev_page)

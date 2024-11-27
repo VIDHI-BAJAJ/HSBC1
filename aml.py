@@ -1,6 +1,6 @@
 import streamlit as st
 from lxml import etree
-
+from navigation import navigate_to, get_previous_page, get_next_page
 
 # Load the XML file
 def load_xml(file):
@@ -21,6 +21,8 @@ if "xml_file_path" in st.session_state:
         st.error("Failed to load XML file.")
 else:
     st.error("XML file path not found in session state. Please set the XML path first.")
+
+
 
 
 # Extract Provenir ID and Unique ID from XML file
@@ -274,9 +276,7 @@ def  aml_page():
      st.write("AML")
      
       # Back button   
-     if st.button("Back"):
-         if len(st.session_state.page_history) > 0:
-            st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
-         else:
-            st.error("No previous page to go back to.")
+     if st.button("Back"):  
+         prev_page = get_previous_page(st.session_state.page)
+         navigate_to(prev_page)
      

@@ -1,9 +1,11 @@
+
 import streamlit as st
 import pandas as pd
 from lxml import etree
 from Equifax import main1
 from Experian import experian_page
 from illion import illion_page
+from navigation import navigate_to, get_previous_page
 
 
 def load_xml(xml_file_path):
@@ -159,27 +161,39 @@ def display_output():
         """,
         unsafe_allow_html=True
     )
-
-    # # # Check if the form data is available in session
+       
     if 'unique_id' in st.session_state:
         unique_id = st.session_state.unique_id
 
         # Extract data for the first row from the XML
         first_row_data = extract_data_from_xml(unique_id)
         if first_row_data:
-            # Fill the first row and set the next two rows with only Application ID
+            # Create rows for displaying data
             data_rows = [
-                {**first_row_data, "Group Member": ""}  # Include Group Member as empty
-            ] + [
-                {"Unique ID": unique_id, "Group Member": ""} for _ in range(2)  # Group Member is empty for all
+                {**first_row_data, "Group Member": "", "Credit Bureaus": "Experian"},
+                {"Unique ID": unique_id, "Group Member": "", "Credit Bureaus": "Equifax"},
+                {"Unique ID": unique_id, "Group Member": "", "Credit Bureaus": "Illion"},
             ]
             
             # Create a DataFrame for display
             df = pd.DataFrame(data_rows)
             df.fillna("", inplace=True)  # Replace NaN with empty string
+            
+            
+            # Add clickable links in the 'Credit Bureaus' column
+            for index, row in df.iterrows():
+                bureau = row['Credit Bureaus']
+                # Set the navigation logic for each bureau
+                if bureau == "Experian":
+                    df.at[index, 'Credit Bureaus'] = f'<a href="#Equifax" onclick="window.location.reload(); st.session_state.page=\'experian\'; display_output(); return false;">{bureau}</a>'
+                elif bureau == "Equifax":
+                    df.at[index, 'Credit Bureaus'] = f'<a href="#Experian" onclick="window.location.reload(); st.session_state.page=\'equifax\'; display_output(); return false;">{bureau}</a>'
+                elif bureau == "Illion":
+                    df.at[index, 'Credit Bureaus'] = f'<a href="#illion" onclick="window.location.reload(); st.session_state.page=\'illion\'; display_output(); return false;">{bureau}</a>'
 
-            # Display the DataFrame in HTML table format
+            # Display the DataFrame
             st.markdown(df.to_html(escape=False, index=False), unsafe_allow_html=True)
+
     
             # Load the appropriate content based on the selected section
             if 'page' not in st.session_state:
@@ -256,24 +270,23 @@ def display_output():
         col1, col2, col3 = st.columns([1, 1, 1])  # Create 3 equal-width columns
 
         with col1:
-            if st.button("Experian"):
-                st.session_state.page = "experian"  # Navigate to Experian page
-                st.rerun()
-        
+         if st.button("Experian", key="experian_btn"):
+            navigate_to("experian")
+            st.rerun()
+            
         with col2:
-            if st.button("Equifax"):
-                st.session_state.page = "equifax"  # Navigate to Equifax page
-                st.rerun()
-        
+         if st.button("Equifax", key="equifax_btn"):
+            navigate_to("equifax")
+            st.rerun()
+            
         with col3:
-            if st.button("Illion"):
-                st.session_state.page = "illion"  # Navigate to Illion page
-                st.rerun()
+         if st.button("Illion", key="illion_btn"):
+            navigate_to("illion")
+            st.rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
          
         # Return Button to go back
         if st.button("Back"):
-            if 'form_data' in st.session_state:
-                del st.session_state.form_data
-            st.session_state.page = "form"
+            prev_page = get_previous_page(st.session_state.page)
+            navigate_to(prev_page)

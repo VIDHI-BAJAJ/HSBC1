@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from lxml import etree
+from navigation import navigate_to, get_previous_page, get_next_page
+
 
 
 # Load the XML file
@@ -75,32 +77,12 @@ def extract_enquiry_data(root):
 
     return items, requests
 
-# Function to go back to the previous page
-def go_back():
-    if 'page_history' in st.session_state and st.session_state.page_history:
-        st.session_state.page = st.session_state.page_history.pop()  # Go to the last visited page
-    else:
-        st.session_state.page = "form"  # Default to the form page if no history exists
-
 
 # Function to create Request page
 def request_page():
     #Styling
      st.markdown(""" 
         <style>
-            .st-emotion-cache-13ln4jf {
-                max-width: 95% !important;
-                width: 100% !important;
-                padding: 4rem 1rem 10rem; !important;
-            }
-            .dataframe {
-                margin-right: 100px;
-                margin-left: 100px;
-            }
-            .css-1lcbmhc {
-                padding-left: 0 !important;
-                padding-right: 0 !important;
-            }
         /* Style for the Provenir ID and Reference# */
         .top-info {
             position: absolute; 
@@ -108,7 +90,6 @@ def request_page():
             right: 10px; 
             text-align: right; 
             font-size: 12px;
-            font-family: Arial, sans-serif;
             color: black;
         }
        
@@ -116,29 +97,27 @@ def request_page():
         .header-text {
             display: inline-block;
             vertical-align: middle;
-            font-family: Arial, sans-serif;
             font-size: 20px;
             font-weight: bold;
             color: black;
         }
-      .st-emotion-cache-1vt4y43 {
-    display: inline-flex;
-    -webkit-box-align: center;
-    align-items: center;
-    -webkit-box-pack: center;
-    justify-content: center;
-    font-weight: 400;
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.1rem;
-    /* min-height: 1.5rem; */
-    margin: 4px;
-    line-height: 1.3;
-    color: black;
-    width: 110px;
-    user-select: none;
-    background-color: rgb(240 240 240);
-    border: 1.5px solid rgb(0 0 0);
-}
+        .st-emotion-cache-1vt4y43 {
+          display: inline-flex;
+          -webkit-box-align: center;
+          align-items: center;
+          -webkit-box-pack: center;
+           justify-content: center;
+           font-weight: 400;
+           padding: 0.25rem 0.75rem;
+           border-radius: 0.1rem;
+           margin: 4px;
+           line-height: 1.3;
+           color: black;
+           width: 110px;
+           user-select: none;
+           background-color: rgb(240 240 240);
+           border: 1.5px solid rgb(0 0 0);
+        }
 .st-emotion-cache-463q5x {
     margin: 0px;
     padding-right: 2.75rem;
@@ -179,7 +158,7 @@ def request_page():
     margin-left: 20px;
 }
 }
-.navbar {
+         .navbar {
             position: fixed;
             top: 0;
             left: 0;
@@ -217,49 +196,48 @@ def request_page():
     # Navbar Buttons
      navbar = st.container()
      with navbar:
-        col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(10)
+        col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns([1,1,1,1,1,1,1,1,1,1])
 
         with col1:
-            if st.button("Request"):
-               st.session_state.page_history.append(st.session_state.page)
-               st.session_state.page = "Request"        
-        with col2:
-            if st.button("Response"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Response"
+            if st.button("Request", key="request_btn"):
+                navigate_to("request") 
 
+                 
+        with col2:
+            if st.button("Response", key="response_btn"):
+               navigate_to("response")
+               
         with col3:
-            if st.button("Demograph"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Demograph"
+            if st.button("Demograph", key="demograph_btn"):
+                navigate_to("demograph") 
+                       
         with col4:
-            if st.button("Analyze"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "analyze"
+            if st.button("Analyze", key="analyze_btn"):
+                navigate_to("analyze")
+                       
         with col5:
-            if st.button("VeriCheck"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "VeriCheck"
+            if st.button("VeriCheck", key="vericheck_btn"):
+                navigate_to("vericheck")
+                
         with col6:
-            if st.button("AML"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "AML"
+            if st.button("AML", key="aml_btn"):
+                navigate_to("aml")
+                
         with col7:
-            if st.button("Fraud"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Fraud"
+            if st.button("Fraud", key="fraud_btn"):
+                navigate_to("fraud")
+                
         with col8:
-            if st.button("Raw"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Raw"
+            if st.button("Raw", key="raw_btn"):
+               navigate_to("raw")
+               
         with col9:
-            if st.button("Aggregated"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Aggregated"
+            if st.button("Aggregated", key="aggregated_btn"):
+                navigate_to("aggregated")
+                  
         with col10:
-            if st.button("Summary"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Summary"
+            if st.button("Summary", key="summary_btn"):
+                navigate_to("summary")
 
      st.markdown('</div>', unsafe_allow_html=True)
      
@@ -278,6 +256,22 @@ def request_page():
                 align-items: center;
                 justify-content: center;
             }
+            .st-emotion-cache-13ln4jf {
+            max-width: 100% !important;  
+            width: 100% !important;      
+            padding: 4rem 4rem 10rem !important;
+        }
+        .css-1lcbmhc {
+            padding-left: 0 !important;  
+            padding-right: 0 !important; 
+        }
+        .st-emotion-cache-1fy0zab {
+         font-size: 1rem;
+         line-height: 1.5;
+         overflow: overlay;
+         margin-left: -40px;
+        }
+        
             .st-emotion-cache-a51556 {
               border-bottom: 1px solid rgba(49, 51, 63);
               border-right: 1px solid rgba(49, 51, 63);
@@ -364,7 +358,6 @@ def request_page():
     <style>
         /* Style for the Back button */
         .stButton button {
-            margin-left: 50px;  /* Adjust this value as needed */
             background-color: rgb(240, 240, 240);
             border: 1.5px solid rgb(0, 0, 0);
             padding: 0.25rem 0.75rem;
@@ -377,7 +370,7 @@ def request_page():
         /* Style for the Download button */
         .stDownloadButton button {
             position: absolute;
-            top: -520px;
+            top: -550px;
             right: 20px;  /* Adjust margin as needed */
             background-color: rgb(240, 240, 240);
             border: 1.5px solid rgb(0, 0, 0);
@@ -396,7 +389,8 @@ def request_page():
 # Back button
      with col1:
       if st.button("Back"):
-        go_back()  # Use the go_back function defined earlier
+        prev_page = get_previous_page(st.session_state.page)
+        navigate_to(prev_page)
 
 # Download button moved to top right side
      with col2:

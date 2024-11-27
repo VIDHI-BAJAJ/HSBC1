@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import requests
 from lxml import etree
+from navigation import navigate_to, get_previous_page, get_next_page
+
 
 # API request and save function
 # def fetch_and_save_response(application_id):
@@ -71,22 +73,22 @@ def display_form():
             margin-bottom: 30px;
         }
         .st-emotion-cache-1vt4y43 {
-        display: inline-flex;
-       -webkit-box-align: center;
-        align-items: center;
-       -webkit-box-pack: center;
-        justify-content: center;
-        font-weight: 400;
-        padding: 0.25rem 0.75rem;
-        min-height: 2.5rem;
-         margin: 0px;
-         line-height: 1.6;
-        color: black !important;
-         width: auto;
-         user-select: none;
-         border: 1px solid rgba(49, 51, 63, 0.2);
-        float: center;
-    }
+            display: inline-flex;
+           -webkit-box-align: center;
+            align-items: center;
+           -webkit-box-pack: center;
+            justify-content: center;
+            font-weight: 400;
+            padding: 0.25rem 0.75rem;
+            min-height: 2.5rem;
+            margin: 0px;
+            line-height: 1.6;
+            color: black !important;
+            width: auto;
+            user-select: none;
+            border: 1px solid rgba(49, 51, 63, 0.2);
+            float: center;
+        } 
         .search-label {
             font-size: 35px;  
             text-transform: uppercase;  
@@ -151,47 +153,128 @@ def display_form():
     )
     
     #form
-    if 'unique_id' not in st.session_state:
-        st.session_state.unique_id = ""
-    if 'application_id' not in st.session_state:
-        st.session_state.application_id = ""
-    if 'first_name' not in st.session_state:
-        st.session_state.first_name = ""
-    if 'last_name' not in st.session_state:
-        st.session_state.last_name = ""
-    if 'country_code' not in st.session_state:
-        st.session_state.country_code = ""
-    if 'application_date' not in st.session_state:
-        st.session_state.application_date = None
-    if 'application_time' not in st.session_state:
-        st.session_state.application_time = None
-    if 'group_member' not in st.session_state:
-        st.session_state.group_member = ""
-    if 'strategy_code' not in st.session_state:
-        st.session_state.strategy_code = ""
-    if 'search_type' not in st.session_state:
-        st.session_state.search_type = "Full Search"
-    if 'call_type' not in st.session_state:
-        st.session_state.call_type = "Consumer"
+#     if 'unique_id' not in st.session_state:
+#         st.session_state.unique_id = ""
+#     if 'application_id' not in st.session_state:
+#         st.session_state.application_id = ""
+#     if 'first_name' not in st.session_state:
+#         st.session_state.first_name = ""
+#     if 'last_name' not in st.session_state:
+#         st.session_state.last_name = ""
+#     if 'country_code' not in st.session_state:
+#         st.session_state.country_code = ""
+#     if 'application_date' not in st.session_state:
+#         st.session_state.application_date = None
+#     if 'application_time' not in st.session_state:
+#         st.session_state.application_time = None
+#     if 'group_member' not in st.session_state:
+#         st.session_state.group_member = ""
+#     if 'strategy_code' not in st.session_state:
+#         st.session_state.strategy_code = ""
+#     if 'search_type' not in st.session_state:
+#         st.session_state.search_type = "Full Search"
+#     if 'call_type' not in st.session_state:
+#         st.session_state.call_type = "Consumer"
 
    
+#     with st.form(key="submit_form1"):
+#         unique_id = st.text_input("Unique ID *", value=st.session_state.unique_id)
+#         application_id = st.text_input("Application ID", value=st.session_state.application_id)
+#         first_name = st.text_input("First Name", value=st.session_state.first_name)
+#         last_name = st.text_input("Last Name", value=st.session_state.last_name)
+#         country_code = st.text_input("Country Code", value=st.session_state.country_code)
+#         application_date = st.date_input("Application Date", value=st.session_state.application_date)
+#         application_time = st.time_input("Application Time", value=st.session_state.application_time)
+#         group_member = st.text_input("Group Member", value=st.session_state.group_member)
+#         strategy_code = st.text_input("Strategy Code", value=st.session_state.strategy_code)
+#         search_type = st.selectbox("Search Type", ["Full Search", "Partial Search"], index=["Full Search", "Partial Search"].index(st.session_state.search_type))
+#         call_type = st.selectbox("Call Type", ["Consumer", "Business"], index=["Consumer", "Business"].index(st.session_state.call_type))
+
+# #submit info
+#         submitted = st.form_submit_button("Submit")
+#         if submitted:
+#             if unique_id:
+#                 st.session_state.form_data = {
+#                     "Unique ID": unique_id,
+#                     "Application ID": application_id,
+#                     "First Name": first_name,
+#                     "Last Name": last_name,
+#                     "Country Code": country_code,
+#                     "Application Date": application_date,
+#                     "Application Time": application_time,
+#                     "Group Member": group_member,
+#                     "Strategy Code": strategy_code,
+#                     "Search Type": search_type,
+#                     "Call Type": call_type,
+#                 }
+#                  # Also, store Unique ID separately for the output
+#                 st.session_state.unique_id = unique_id
+#                 st.session_state.page = "output"  
+#             else:
+#                 st.warning("Please enter the Unique ID.") 
+                
+#     #clearCriteria Info            
+#     if st.button("Clear Criteria"):
+#         for key in ['unique_id', 'application_id', 'first_name', 'last_name', 'country_code', 
+#                      'application_date', 'application_time', 'group_member', 'strategy_code', 
+#                      'search_type', 'call_type']:
+#             if key in st.session_state:
+#                 del st.session_state[key]
+
+        
+#         st.session_state.unique_id = "   "
+#         st.session_state.application_id = "   "
+#         st.session_state.first_name = "   "
+#         st.session_state.last_name = "   "
+#         st.session_state.country_code = "   "
+#         st.session_state.application_date = None
+#         st.session_state.application_time = None
+#         st.session_state.group_member = "   "
+#         st.session_state.strategy_code = "   "
+#         st.session_state.search_type = "Full Search"
+#         st.session_state.call_type = "Consumer"
+
+#         st.rerun()  
+        
+    if 'form_submitted' not in st.session_state:
+        st.session_state.form_submitted = False
+        
+    # Initialize form fields in session state
+    for field in ['unique_id', 'application_id', 'first_name', 'last_name', 
+                 'country_code', 'application_date', 'application_time', 
+                 'group_member', 'strategy_code', 'search_type', 'call_type']:
+        if field not in st.session_state:
+            st.session_state[field] = ""
+
+   
+    # Your existing style definitions...
+
     with st.form(key="submit_form1"):
+        # Form fields
         unique_id = st.text_input("Unique ID *", value=st.session_state.unique_id)
         application_id = st.text_input("Application ID", value=st.session_state.application_id)
         first_name = st.text_input("First Name", value=st.session_state.first_name)
         last_name = st.text_input("Last Name", value=st.session_state.last_name)
         country_code = st.text_input("Country Code", value=st.session_state.country_code)
-        application_date = st.date_input("Application Date", value=st.session_state.application_date)
-        application_time = st.time_input("Application Time", value=st.session_state.application_time)
+        application_date = st.date_input("Application Date", value=st.session_state.application_date if st.session_state.application_date else None)
+        application_time = st.time_input("Application Time", value=st.session_state.application_time if st.session_state.application_time else None)
         group_member = st.text_input("Group Member", value=st.session_state.group_member)
         strategy_code = st.text_input("Strategy Code", value=st.session_state.strategy_code)
-        search_type = st.selectbox("Search Type", ["Full Search", "Partial Search"], index=["Full Search", "Partial Search"].index(st.session_state.search_type))
-        call_type = st.selectbox("Call Type", ["Consumer", "Business"], index=["Consumer", "Business"].index(st.session_state.call_type))
+        search_type = st.selectbox("Search Type", 
+                                 ["Full Search", "Partial Search"], 
+                                 index=0 if st.session_state.search_type == "" else ["Full Search", "Partial Search"].index(st.session_state.search_type))
+        call_type = st.selectbox("Call Type", 
+                               ["Consumer", "Business"], 
+                               index=0 if st.session_state.call_type == "" else ["Consumer", "Business"].index(st.session_state.call_type))
 
-#submit info
+        # Submit button
         submitted = st.form_submit_button("Submit")
+        
         if submitted:
-            if unique_id:
+            if not unique_id:
+                st.error("Please enter the Unique ID.")
+            else:
+                # Store form data in session state
                 st.session_state.form_data = {
                     "Unique ID": unique_id,
                     "Application ID": application_id,
@@ -205,32 +288,23 @@ def display_form():
                     "Search Type": search_type,
                     "Call Type": call_type,
                 }
-                 # Also, store Unique ID separately for the output
-                st.session_state.unique_id = unique_id
-                st.session_state.page = "output"  
-            else:
-                st.warning("Please enter the Unique ID.") 
                 
-    #clearCriteria Info            
-    if st.button("Clear Criteria"):
-        for key in ['unique_id', 'application_id', 'first_name', 'last_name', 'country_code', 
-                     'application_date', 'application_time', 'group_member', 'strategy_code', 
-                     'search_type', 'call_type']:
-            if key in st.session_state:
-                del st.session_state[key]
+                # Update individual session state values
+                for key, value in st.session_state.form_data.items():
+                    key_lower = key.lower().replace(" ", "_")
+                    st.session_state[key_lower] = value
+                
+                st.session_state.form_submitted = True
+                # Navigate to output page
+                navigate_to("output")
 
-        
-        st.session_state.unique_id = "   "
-        st.session_state.application_id = "   "
-        st.session_state.first_name = "   "
-        st.session_state.last_name = "   "
-        st.session_state.country_code = "   "
+    # Clear criteria button outside the form
+    if st.button("Clear Criteria"):
+        for key in ['unique_id', 'application_id', 'first_name', 'last_name', 
+                   'country_code', 'application_date', 'application_time', 
+                   'group_member', 'strategy_code', 'search_type', 'call_type']:
+            st.session_state[key] = ""
         st.session_state.application_date = None
         st.session_state.application_time = None
-        st.session_state.group_member = "   "
-        st.session_state.strategy_code = "   "
-        st.session_state.search_type = "Full Search"
-        st.session_state.call_type = "Consumer"
-
-        st.rerun()  
-        
+        st.session_state.form_submitted = False
+        st.rerun()

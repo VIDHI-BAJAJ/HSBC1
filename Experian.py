@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 from lxml import etree
+from navigation import navigate_to, get_previous_page, get_next_page
+
+
 
 # Load the XML file
 def load_xml(file):
@@ -235,12 +238,6 @@ def experian_page():
         </style>
     """, unsafe_allow_html=True)
 
-     
- 
-
-    if root is None:
-        st.error("Failed to load XML file.")
-        return
 
     provenir_id, ReferenceNumber = extract_ids_from_xml(root)
 
@@ -255,56 +252,53 @@ def experian_page():
     st.image("logo.png", width=200) #logo Arrangment
     
     st.markdown('<div class="navbar">', unsafe_allow_html=True)
-    # Navbar Buttons
-    if "page_history" not in st.session_state:
-        st.session_state.page_history = []
+
 
     # Navbar Buttons
     navbar = st.container()
     with navbar:
-        col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns(10)
+        col1, col2, col3, col4, col5, col6, col7, col8, col9, col10 = st.columns([1,1,1,1,1,1,1,1,1,1])
 
         with col1:
-            if st.button("Request"):
-               st.session_state.page_history.append(st.session_state.page)
-               st.session_state.page = "Request"        
-        with col2:
-            if st.button("Response"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Response"
+            if st.button("Request", key="request_btn"):
+                navigate_to("request") 
 
+                 
+        with col2:
+            if st.button("Response", key="response_btn"):
+               navigate_to("response")
+               
         with col3:
-            if st.button("Demograph"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Demograph"
+            if st.button("Demograph", key="demograph_btn"):
+                navigate_to("demograph") 
+                       
         with col4:
-            if st.button("Analyze"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "analyze"
+            if st.button("Analyze", key="analyze_btn"):
+                navigate_to("analyze")
+                       
         with col5:
-            if st.button("VeriCheck"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "VeriCheck"
+            if st.button("VeriCheck", key="vericheck_btn"):
+                navigate_to("vericheck")
+                
         with col6:
-            if st.button("AML"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "AML"
+            if st.button("AML", key="aml_btn"):
+                navigate_to("aml")
+                
         with col7:
-            if st.button("Fraud"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Fraud"
+            if st.button("Fraud", key="fraud_btn"):
+                navigate_to("fraud")
+                
         with col8:
-            if st.button("Raw"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Raw"
+            if st.button("Raw", key="raw_btn"):
+               navigate_to("raw")
+               
         with col9:
-            if st.button("Aggregated"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Aggregated"
+            if st.button("Aggregated", key="aggregated_btn"):
+                navigate_to("aggregated")
+                  
         with col10:
-            if st.button("Summary"):
-                st.session_state.page_history.append(st.session_state.page)
-                st.session_state.page = "Summary"
+            if st.button("Summary", key="summary_btn"):
+                navigate_to("summary")
 
     st.markdown('</div>', unsafe_allow_html=True)
      
@@ -371,20 +365,7 @@ def experian_page():
         """,
         unsafe_allow_html=True
     )
-     # Inject JavaScript for navigation and back button support
-    st.markdown(f"""
-    <script>
-    function navigateTo(page) {{
-        window.location.hash = page;  // Update the URL hash
-    }}
-
-    // Listen for hash change (back/forward button) to reload the page
-    window.addEventListener("hashchange", function() {{
-        const page = window.location.hash.replace('#', '') || 'Home';
-        window.location.reload();  // Reload the Streamlit app to update the session state
-    }});
-    </script>
-    """, unsafe_allow_html=True)
+ 
 
     st.title("Aggregated Data")
     # Extract raw data using the existing function
@@ -396,16 +377,8 @@ def experian_page():
      st.table(agg_df)  # Display the raw data in a table format
         
          # Back button   
-    if st.button("Back"):
-         if len(st.session_state.page_history) > 0:
-            st.session_state.page = st.session_state.page_history.pop()  # Go back to the previous page
-         else:
-            st.error("No previous page to go back to.")
+    if st.button("Back"):   
+         prev_page = get_previous_page(st.session_state.page)
+         navigate_to(prev_page)
 
-    # JavaScript for hash-based navigation
-    st.markdown("""
-    <script>
-        function navigateTo(page) { window.location.hash = page; }
-        window.addEventListener("hashchange", () => window.location.reload());
-    </script>
-    """, unsafe_allow_html=True)
+  
